@@ -1,0 +1,13 @@
+# dependencies
+node_modules
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+#firebase credential
+cisc4900-b8e82-firebase-adminsdk-28t26-62d5d5cfbb.json
+Config.txt

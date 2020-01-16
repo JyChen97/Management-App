@@ -1,0 +1,19 @@
+/*
+*File name: AnnouncementBoard.css 
+*styling for my AnnouncementBoard
+*/
+#announcement_content{
+    white-space: pre-line;
+}
+
+.post {
+    border-top-style: groove;
+}
+
+.post:hover{
+    background-color: lightgray;
+}
+
+.title{
+    border-bottom-style: outset;
+}

@@ -1,0 +1,17 @@
+/*
+*File Name: Login.css
+*styling for login page
+*/
+@media all and (min-width: 400px) {
+  .Login {
+    padding: 60px;
+  }
+
+  .Login form {
+    margin: auto;
+    max-width: 320px;
+  }
+}
+  .Err{
+    color: red;
+  }
