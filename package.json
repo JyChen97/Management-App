@@ -7,21 +7,22 @@
     "start": "node server.js",
     "client": "npm start --prefix client",
     "dev": "concurrently \"npm start\" \"npm run client\"",
-    "test": "mocha || true"
+    "preinstall": "node preinstall.js",
+    "heroku-postbuild": "NPM_CONFIG_PRODUCTION=false npm install --prefix client && npm run build --prefix client"
   },
   "author": "Jiaying Chen",
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.19.0",
-    "chai": "^4.2.0",
     "express": "^4.16.4",
-    "firebase-admin": "^8.9.0",
-    "mocha": "^6.1.4",
-    "sinon": "^7.3.2"
+    "firebase-admin": "^8.9.0"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "concurrently": "^5.0.2",
     "env-cmd": "^8.0.2",
-    "node-mocks-http": "^1.7.5"
+    "node-mocks-http": "^1.7.5",
+    "mocha": "^6.1.4",
+    "sinon": "^7.3.2"
   }
 }
