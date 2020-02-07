@@ -1,5 +1,4 @@
-//File name: Auth.js
-//Contains all the endpoints for user registration and sign in 
+//Firebase only allow creating user account on client side. In order to add user into database, their login token is required.
 const admin = require('../Config/firebaseAdmin')
 const database = admin.database()
 const ref = database.ref()
@@ -7,41 +6,42 @@ const express = require('express')
 const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
 
-router.post('/login', isAuthenticated, (req, res) => {
-    var uid = res.locals.userID
-    usersRef = ref.child('Users/' + uid)
-    usersRef.once("value", snapshot => {
-        var userPosition = snapshot.val().jobPosition         //retrieve the job position the user sign up with
-        res.send(userPosition)                                //sends the position back to view, so employee/employer page can be render
-    });
+//@route    Post /login
+//@desc     login user in
+//@access   Private
+router.post('/login', isAuthenticated, async (req, res) => {
+  let uid = res.locals.userID
+  try{
+    const usersRef = await ref.child('Users/' + uid)
+    const snapshot = await usersRef.once("value")
+    const userPosition = await snapshot.val().jobPosition       
+    res.send(userPosition)                                
+  } catch (error) {
+    res.status(401)
+    console.log(error)
+  }
 })
 
-  //First required to update user profile
-  //Then update the database containing user info
-router.post('/createusers', isAuthenticated, (req, res) => {
-    var uid = res.locals.userID
-    usersRef = ref.child('Users/' + uid)
-    admin.auth().updateUser(uid, {                            //updates user profile
+//@route    /createusers
+//@desc     create user in database
+//@access   Private
+router.post('/createusers', isAuthenticated, async (req, res) => {
+  let uid = res.locals.userID
+  try {
+    const usersRef = await ref.child('Users/' + uid)
+    await admin.auth().updateUser(uid, {                            
       displayName: req.body.name
-    }).then(userRecord => {
-      console.log("UPDATE TO PROFILE SUCCESS!!")
     })
-    .catch( error => {
-      console.log(error)
-    })
-    usersRef.set({                                      //updates the database
+    await usersRef.set({                                    
       name       : req.body.name,
       companyName: req.body.companyName,
       jobPosition: req.body.jobPosition
-    }, error => {
-        if(error){
-          console.log(error)
-        }else{
-          console.log("UPDATE TO DATABASE SUCCESS!!")
-        }
-      }
-    );
-    res.send({"res": "Update Success"})
+    })
+    res.status(200).json({ "res": "Update Success" })
+  }catch (error) {
+    console.log(error)
+    res.status(400)
+  }
 })
 
 module.exports = router;

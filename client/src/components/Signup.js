@@ -117,7 +117,8 @@ class Signup extends Component {
     })
     .catch((error) => {                                     //Display error when user entered wrong creditials
       var errorCode = error.code;
-      if (errorCode === 'email-already-in-use') {
+      console.log(errorCode)
+      if (errorCode === 'auth/email-already-in-use') {
           this.setState({registrationError: "Email Already Exist"})
       } else if (errorCode === 'auth/invalid-email') {
           this.setState({registrationError: "Invalid Email"})

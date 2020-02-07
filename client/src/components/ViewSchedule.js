@@ -5,57 +5,56 @@ import { Table } from "react-bootstrap";
 import axios from "axios";
 import fire from "../webConfig/Fire";
 
-class ViewSchedule extends Component{
-  constructor(props){
+class ViewSchedule extends Component {
+  constructor(props) {
     super(props);
     this.state = {
-      clockTimestamp: [],
+      clockTimestamp: {},
       noData: false
     }
   }
 
   //get schedules from the server
-  getTimestamp = event =>{
+  getTimestamp = event => {
     fire.auth().onAuthStateChanged((user) => {            //see if user still logged in
-      if(user){       
+      if (user) {
         fire.auth().currentUser.getIdToken(true)        //get ID token
-        .then( idToken => {
+          .then(idToken => {
             axios.post('/getSchedule', {                //request for schedule
               "id": idToken
             })
-            .then(res =>{
-              this.setState({
-                noData          : res.data.noData,
-                clockTimestamp  : res.data.timeStamp
+              .then(res => {
+                this.setState({
+                  clockTimestamp: res.data.timeStamp,
+                  noData: res.data.noData
+                })
               })
-            })
-        })
+          })
       }
     })
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.setState({})
-    setInterval( () => 
+    setInterval(() =>
       this.getTimestamp(), 1000                   //update the table every second so when user clock in or clock out, 
     )                                             //the schedule is displayed
   }
 
-  componentWillMount(){
+  componentWillMount() {
     this.getTimestamp()
   }
 
-  render(){
-
-    var data = this.state.clockTimestamp.map((schedule) =>(               //seperate the array into divs
-          <tr key = {schedule.Date}> 
-            <td> {schedule.Date}</td>
-            <td> {schedule.clockIn}</td>
-            <td> {schedule.clockOut === 0?  " " : schedule.clockOut }</td>
-          </tr>
+  render() {
+    var data = Object.keys(this.state.clockTimestamp).map((schedule) => (               //seperate the array into divs
+        <tr key={this.state.clockTimestamp[schedule].Date}>
+        <td> {this.state.clockTimestamp[schedule].Date}</td>
+        <td> {this.state.clockTimestamp[schedule].clockIn}</td>
+        <td> {this.state.clockTimestamp[schedule].clockOut === 0 ? " " : this.state.clockTimestamp[schedule].clockOut}</td>
+      </tr>
     ))
 
-    return(
+    return (
       <Table bordered >
         <thead>
           <tr>
@@ -65,18 +64,20 @@ class ViewSchedule extends Component{
           </tr>
         </thead>
         <tbody>
-            {this.state.clockTimestamp.length
-            ? data
-            : (
-                <tr>
-                  <td></td>
-                  <td></td>
-                  <td></td>
-                </tr>
-              )
-            } 
+          {this.state.noData
+            ? 
+            (
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            )
+            :
+            data 
+          }
         </tbody>
-      </Table> 
+      </Table>
     );
   }
 }

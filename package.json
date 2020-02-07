@@ -4,7 +4,7 @@
   "description": "Backend for management app",
   "main": "Server.js",
   "scripts": {
-    "start": "node Server.js",
+    "start": "nodemon Server.js",
     "client": "npm start --prefix client",
     "dev": "concurrently \"npm start\" \"npm run client\"",
     "preinstall": "node preinstall.js",
@@ -21,8 +21,9 @@
     "chai": "^4.2.0",
     "concurrently": "^5.0.2",
     "env-cmd": "^8.0.2",
-    "node-mocks-http": "^1.7.5",
     "mocha": "^6.1.4",
+    "node-mocks-http": "^1.7.5",
+    "nodemon": "^2.0.2",
     "sinon": "^7.3.2"
   }
 }

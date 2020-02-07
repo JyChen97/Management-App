@@ -109,8 +109,9 @@ class AnnouncementBoard extends Component {
   }
 
   render(){
+    let count = 0;
     var announcements = this.state.announcements.map((announcement)=>(        //Seperate the array into divs for render 
-      <div key={announcement.postTitle} className="post">
+      <div key={count++} className="post">
         <div className="title">{announcement.postTitle}</div>
         <div id="announcement_content">{announcement.postContent}</div>
         <br></br>

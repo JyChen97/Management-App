@@ -1,5 +1,3 @@
-//File name: AnnouncementBoard.js
-//Contains all the endpoints for Annoucement board functionalities
 const admin = require('../Config/firebaseAdmin')
 const database = admin.database()
 const ref = database.ref()
@@ -7,52 +5,52 @@ const express = require('express')
 const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
 
-router.post('/getAnnouncement', isAuthenticated, (req,res) =>{
-    var uid = res.locals.userID
-    var Announcements = []
-    usersRef = ref.child('Users/' + uid)
-    usersRef.once('value', snapshot => {                              //retrieve the company name that the user belong to
-      var companyName = snapshot.val().companyName
-      announcementRef = ref.child('Announcements/' + companyName)
-      announcementRef.once('value', snapshot => {                     //retrieve user object from firebase
-        if(snapshot.val() === null){                                  
-          res.send({                                       //if there's no announcement
-            "noData"       : true,
-            "Announcements": Announcements
-          })
-        }else{
-          Announcements = Object.values(snapshot.val())
-          res.send({                                      //if there's announcements
-            "noData"       : false,
-            "Announcements": Announcements
-          })
-        }
+//@route    /getAnnouncement
+//@desc     fetch announcements for user
+//@access   Private
+router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
+  let uid = res.locals.userID
+  let Announcements
+  try{
+    const usersRef = await ref.child('Users/' + uid)
+    const snapshot = await usersRef.once('value')                     
+    const companyName = await snapshot.val().companyName
+    const announcementRef = await ref.child('Announcements/' + companyName)
+    const announcement = await  announcementRef.once('value')                  
+    if(announcement.val() === null){
+      res.send({                                      
+      "noData"       : true,
+      "Announcements": Announcements
       })
-    })
-  })
+    } else {
+      Announcements = Object.values(announcement.val())
+      res.json({ "Announcements": Announcements })
+    }
+  } catch(error) {
+    res.status(500)
+  }
+})
 
 
-  //Identical to getAnnouncement above
-  router.post('/createAnnouncement', isAuthenticated, (req,res) =>{
-    var uid = res.locals.userID
-    var dateAndTime = req.body.date + " " + req.body.time
-    usersRef = ref.child('Users/' + uid)
-    usersRef.once('value', snapshot => {
-      var companyName = snapshot.val().companyName
-      announcementRef = ref.child('Announcements/' + companyName + '/' + dateAndTime)       //Announcements are stored under the date that they are posted
-      announcementRef.set({
+//@route    /createAnnouncement
+//@desc     allow manager to create announcement 
+//@access   Private
+router.post('/createAnnouncement', isAuthenticated, async (req, res) =>{
+  let uid = res.locals.userID
+  let dateAndTime = req.body.date + " " + req.body.time
+  try{
+    const usersRef = await ref.child('Users/' + uid)
+    const snapshot = await usersRef.once('value')
+    const companyName = await snapshot.val().companyName
+    const announcementRef = await ref.child('Announcements/' + companyName + '/' + dateAndTime)    
+    await announcementRef.set({
         postTitle   : req.body.titlePost,
         postContent : req.body.newPost
-      }, error =>{
-        if(error){
-          console.log(error)
-        }else{
-          res.send({
-            "newPost" : "Created new post"                             
-          })
-        }
-      })
     })
-  })
+    res.status(200).json({ "newPost" : "Created new post" })
+  } catch (error) {
+    res.status(500)
+  }
+})
 
   module.exports = router;

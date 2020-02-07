@@ -1,5 +1,3 @@
-//File name: updateInfo.js
-//Contains all endpoints for the update info functionalities
 const admin = require('../Config/firebaseAdmin')
 const database = admin.database()
 const ref = database.ref()
@@ -7,58 +5,37 @@ const express = require('express')
 const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
 
-router.post('/updateInfo', isAuthenticated, (req, res) => {
-    var uid = res.locals.userID
-    usersRef = ref.child('Users/' + uid)
-    var userCompanyName = req.body.companyName
-      admin.auth().updateUser(uid, {                    //this updates the user profile  
-        displayName: req.body.name,
-      })
-      .then(userRecord => {
-        console.log("UPDATE TO PROFILE SUCCESS!!")
-      })
-      .catch( error => {
-        console.log('Error fetching user data:', error);
-        throw error
-      })
-      usersRef.once('value', snapshot => {                   //get user object to update the database
-        var databaseCompanyName = snapshot.val().companyName
-        if( databaseCompanyName === userCompanyName){        //Not changing company? just update
-          usersRef.update({                                 
-            name       : req.body.name,
-            companyName: req.body.companyName,
-            jobPosition: req.body.jobPosition
-            },error => {
-                if(error){
-                  console.log(error)
-                  throw error
-                }else{
-                  console.log("UPDATE TO DATABASE SUCCESSFULLY!!")
-                  res.send({
-                    "success"    : "Update Success",
-                  })
-                }
-              }
-          )    
-        }else{                                                // Changing company? reset the user object with the new company name
-          usersRef.set({
-            name       : req.body.name,
-            companyName: req.body.companyName,
-            jobPosition: req.body.jobPosition
-            },error => {
-                if(error){
-                  console.log(error)
-                  throw error
-                }else{
-                  console.log("UPDATE TO DATABASE SUCCESSFULLY!!")
-                  res.send({
-                    "success"    : "Update Success",
-                  })
-                }
-              }
-          )
-        }
-      })
-  })
+//@route    /updateInfo
+//@desc     allow users to update their information
+//@access   Private
+router.post('/updateInfo', isAuthenticated, async (req, res) => {
+  let uid = res.locals.userID
+  let name = req.body.name
+  let userCompanyName = req.body.companyName
 
-  module.exports = router;
+  try {
+    await admin.auth().updateUser(uid, { displayName: name })   //updates user profile
+    const usersRef = await ref.child('Users/' + uid)
+    const snapshot = await usersRef.once('value')
+    const databaseCompanyName = await snapshot.val().companyName
+    if (databaseCompanyName === userCompanyName) {        //Not changing company? just update
+      await usersRef.update({
+        name: req.body.name,
+        companyName: req.body.companyName,
+        jobPosition: req.body.jobPosition
+      })
+    } else {                                                // Changing company? reset the user object with the new company name
+      await usersRef.set({
+        name: req.body.name,
+        companyName: req.body.companyName,
+        jobPosition: req.body.jobPosition
+      })
+    }
+    res.status(200).json({ "success": "Update Success" })
+  } catch (error) {
+    console.log(error)
+    res.status(500)
+  }
+})
+
+module.exports = router;
