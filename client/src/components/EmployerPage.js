@@ -1,5 +1,3 @@
-//File name: EmployerPage.js
-//renders a side bar and is able to create announcement
 import React, { Component } from "react";
 import { Tab, ListGroup, Col, Row } from "react-bootstrap";
 import "./styles/EmployeePage.css";

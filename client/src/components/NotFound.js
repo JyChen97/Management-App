@@ -1,7 +1,3 @@
-/*
-*File name NotFound.js
-*when experienced user trying to access pages that does not exist, this would render page not found
-*/
 import React from "react";
 import "./styles/NotFound.css";
 

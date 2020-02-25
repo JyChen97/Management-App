@@ -1,5 +1,3 @@
-//File name: Routes.js
-//Handles routing so pages won't have to reload
 import React from "react";
 import { Route, Switch } from "react-router-dom";
 import Home from "./components/Home";
@@ -18,9 +16,5 @@ export default () =>
     <Route path="/signup" exact component={Signup} />
     <Route path="/EmployeePage" exact component={EmployeePage} />
     <Route path="/EmployerPage" exact component={EmployerPage} />
-    
-    { /* Catch all unmatched routes */ }
     <Route component={NotFound} />
   </Switch>;
-
-

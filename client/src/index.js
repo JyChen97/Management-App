@@ -1,5 +1,3 @@
-//File name: index.js
-//calls the App component and pass it to id: root in the "index.html" file
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './components/styles/index.css';

@@ -1,92 +1,67 @@
-//File name: App.js
-//Contains the navbar for my application
-import React, { Component, Fragment } from "react";
-import { Navbar, Nav} from "react-bootstrap";
+import React, { Component } from "react";
 import Routes from "./Routes";
 import "./components/styles/App.css";
 import fire from "./webConfig/Fire";
 import { withRouter } from "react-router-dom";
 import axios from "axios";
+import Context from './Context';
+import CustomNavbar from './components/Navbar';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isAuthenticated: false,
-      position: ""
+      ID: null
     }
   }
 
-  //React lifecycle Method
-  //Once this component is mounted on the DOM, authListener will be executed 
-  componentDidMount(){
+  componentDidMount() {
     this.authListener();
   }
 
   //listens for user if they are authenticated
   authListener = event => {
-    fire.auth().onAuthStateChanged( user => {               //call cloud functions provided by Firebase, check to see if there is user 
-      if(user && user.emailVerified){                       //check to see if the user verified their email
-        this.setState({isAuthenticated: true});             //change the state isAuthenthicated to true
-        fire.auth().currentUser.getIdToken(true)            //get the Id token whenever user login
-        .then(idToken => {
-          axios.post("/login", {"id": idToken})             //pass it to server for validation so user can be redirected
-          .then(res =>{
-            if(res.data === "Worker"){
-              this.setState({position: "/EmployeePage"})
-            }else if(res.data === "Manager"){
-              this.setState({position: "/EmployerPage"})
-            }
-          })
-          .catch(error =>{
-            console.log(error)
-          })
-        })
-      }else{
-        this.setState({isAuthenticated: false});
+    fire.auth().onAuthStateChanged(async (user) => {               //call api provided by Firebase, check to see if there is user 
+
+      if (user) {
+        user.reload();
+        if (user.emailVerified) {                       //check to see if the user verified their email
+          let idToken = await fire.auth().currentUser.getIdToken(true)      //get ID token
+          this.setState(
+            { 
+              isAuthenticated: true, 
+              ID: idToken 
+            });
+          let res = await axios.post("/login", { "id": idToken })
+          let jobPosition = res.data
+          if (jobPosition === "Worker") {
+            this.props.history.push("/EmployeePage")
+          } else {
+            this.props.history.push("/EmployerPage")
+          }
+        }
+      } else {
+        this.setState({ isAuthenticated: false });
       }
-    });
+    })
   }
 
-  handleLogout = event => {
+  handleLogout = () => {
     fire.auth().signOut();
     this.props.history.push("/");
   }
 
   render() {
     return (
-      //This section is the navbar:
-      <div id = "app container">
-        <Navbar bg="light" expand="md">
-        <Navbar.Brand  href="/">C-W</Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-          <Nav className="mr-auto">
-           {this.state.isAuthenticated?
-            <Nav.Link href={this.state.position}>Dashboard</Nav.Link> : null}
-          </Nav>
-          {this.state.isAuthenticated
-          ? <Nav.Item >
-              <Nav.Link onClick={this.handleLogout}>Logout</Nav.Link>
-            </Nav.Item>
-          : <Fragment>
-              <Nav>
-              <Nav.Item>
-                <Nav.Link href ="/signup">Register</Nav.Link>
-              </Nav.Item>
-              <Nav.Item>
-                <Nav.Link href ="/Login">Sign In</Nav.Link>
-              </Nav.Item>
-              </Nav>
-            </Fragment>
-          }
-          </Navbar.Collapse>
-        </Navbar>
-        <Routes />
+      <div id="app container">
+        <CustomNavbar isAuthenticated={this.state.isAuthenticated} position={this.state.position} handleLogout={this.handleLogout} />
+        <Context.Provider value={this.state.ID}>
+          <Routes />
+        </Context.Provider>
       </div>
     );
   }
-
 }
 
 export default withRouter(App);

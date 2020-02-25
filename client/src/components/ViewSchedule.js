@@ -1,5 +1,3 @@
-//File name: ViewSchedule.js
-//render the view Schedule table
 import React, { Component } from "react";
 import { Table } from "react-bootstrap";
 import axios from "axios";
@@ -14,22 +12,21 @@ class ViewSchedule extends Component {
     }
   }
 
-  //get schedules from the server
-  getTimestamp = event => {
-    fire.auth().onAuthStateChanged((user) => {            //see if user still logged in
+  getTimestamp = () => {
+    fire.auth().onAuthStateChanged(async (user) => {            //see if user still logged in
       if (user) {
-        fire.auth().currentUser.getIdToken(true)        //get ID token
-          .then(idToken => {
-            axios.post('/getSchedule', {                //request for schedule
-              "id": idToken
-            })
-              .then(res => {
-                this.setState({
-                  clockTimestamp: res.data.timeStamp,
-                  noData: res.data.noData
-                })
-              })
+        try {
+          let idToken = await fire.auth().currentUser.getIdToken(true)        //get ID token
+          let res = await axios.post('/getSchedule', {                //request for schedule
+            "id": idToken
           })
+          this.setState({
+            clockTimestamp: res.data.timeStamp,
+            noData: res.data.noData
+          })
+        } catch (error) {
+          console.error(error)
+        }
       }
     })
   }
@@ -47,7 +44,7 @@ class ViewSchedule extends Component {
 
   render() {
     var data = Object.keys(this.state.clockTimestamp).map((schedule) => (               //seperate the array into divs
-        <tr key={this.state.clockTimestamp[schedule].Date}>
+      <tr key={this.state.clockTimestamp[schedule].Date}>
         <td> {this.state.clockTimestamp[schedule].Date}</td>
         <td> {this.state.clockTimestamp[schedule].clockIn}</td>
         <td> {this.state.clockTimestamp[schedule].clockOut === 0 ? " " : this.state.clockTimestamp[schedule].clockOut}</td>
@@ -65,7 +62,7 @@ class ViewSchedule extends Component {
         </thead>
         <tbody>
           {this.state.noData
-            ? 
+            ?
             (
               <tr>
                 <td></td>
@@ -74,7 +71,7 @@ class ViewSchedule extends Component {
               </tr>
             )
             :
-            data 
+            data
           }
         </tbody>
       </Table>
