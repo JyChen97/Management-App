@@ -1,8 +1,10 @@
 import React, { Component } from "react";
-import { FormGroup, FormControl, FormLabel, Button, Modal, Form, Row, Col } from "react-bootstrap";
+import { FormGroup, FormControl, FormLabel, Button, Form, Row, Col } from "react-bootstrap";
 import "./styles/Signup.css";
 import fire from "../webConfig/Fire";
 import axios from "axios";
+import VerificationModal from './VerificationModal';
+import Context from '../Context';
 
 class Signup extends Component {
   constructor(props) {
@@ -33,20 +35,20 @@ class Signup extends Component {
   }
 
   verification = async () => {
-    this.setState({ 
+    this.setState({
       error: false,
-      show: false,
-      registrationError: "Need Verification" 
-    });
-
-    try{
+      show: false
+    })
+    try {
       await fire.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
       fire.auth().onAuthStateChanged(user => {          //user automatically logs in without the need for email verification
         if (user && !user.emailVerified) {              //this statement enforce the user to verified their email or else they'll be able to login 
           fire.auth().signOut();
+          this.setState({ registrationError: "Need Verification" })
         }
+        this.props.oAuth();
       })
-    }catch (error) {
+    } catch (error) {
       console.log(error)
     }
   }
@@ -57,47 +59,40 @@ class Signup extends Component {
     })
   }
 
-  handleSubmit = event => {
+  handleSubmit = async event => {
     event.preventDefault();
     const { name, companyName, jobPosition, email, password } = this.state
-
-    fire.auth().createUserWithEmailAndPassword(email, password)     //create a new user using Firebase function
-      .then(() => {
-        fire.auth().onAuthStateChanged((user) => {                  //once created, there will exist a user
-          if (user) {
-            fire.auth().currentUser.getIdToken(true)              //get user ID token
-              .then(idToken => {
-                axios.post("/createusers", {                    //This will update the database
-                  "id": idToken,
-                  "companyName": companyName,
-                  "name": name,
-                  "jobPosition": jobPosition
-                })
-              })
-              .catch(function (error) {
-                console.log(error)
-              });
-            if (!user.emailVerified) {                  //prompt user to verify their email
-              user.sendEmailVerification();
-              this.setState({ 
-                error: true, 
-                show: true,
-                registrationError: "Need Verification" 
-              });
-            }
-          }
-        })
-      })
-      .catch((error) => {                                     //Display error when user entered wrong creditials
-        let errorCode = error.code;
-        if (errorCode === 'auth/email-already-in-use') {
-          this.setState({ registrationError: "Email Already Exist" })
-        } else if (errorCode === 'auth/invalid-email') {
-          this.setState({ registrationError: "Invalid Email" })
-        } else if (errorCode === 'auth/weak-password') {
-          this.setState({ registrationError: "Weak Password" })
+    try {
+      await fire.auth().createUserWithEmailAndPassword(email, password)     //create a new user using Firebase function
+      fire.auth().onAuthStateChanged(async (user) => {                  //once created, there will exist a user
+        
+        if (user) {
+          console.log('signup auth state')
+          let idToken = await fire.auth().currentUser.getIdToken(true)
+          await axios.post("/createusers", {                    //This will update the database
+            "ID": idToken,
+            "companyName": companyName,
+            "name": name,
+            "jobPosition": jobPosition
+          })
+          user.sendEmailVerification();
+          this.setState({
+            error: true,
+            show: true,
+            registrationError: "Need Verification"
+          });
         }
-      });
+      })
+    } catch (error) {                                     //Display error when user entered wrong creditials
+      let errorCode = error.code;
+      if (errorCode === 'auth/email-already-in-use') {
+        this.setState({ registrationError: "Email Already Exist" })
+      } else if (errorCode === 'auth/invalid-email') {
+        this.setState({ registrationError: "Invalid Email" })
+      } else if (errorCode === 'auth/weak-password') {
+        this.setState({ registrationError: "Weak Password" })
+      }
+    };
   }
 
   render() {
@@ -179,21 +174,8 @@ class Signup extends Component {
           <p className="Err">{this.state.registrationError}</p>
 
           {/*Prompt user to verify their email, or log them out when they clicked close button */}
-          <Modal show={this.state.show}>
-            <Modal.Header closeButton>
-              <Modal.Title>Email Verification</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <p>Please verify your email</p>
-              <p> Once you have verified, please click ok to continue </p>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button onClick={this.verification}>
-                Ok
-              </Button>
-            </Modal.Footer>
-          </Modal>
-          
+          <VerificationModal show={this.state.show} verification={this.verification} />
+
           <Button
             block
             disabled={!this.validateForm()}
@@ -208,4 +190,10 @@ class Signup extends Component {
   }
 }
 
-export default Signup;
+const getAuthFunction = () => (
+  <Context.Consumer>
+    {value => <Signup oAuth={value}/>}
+  </Context.Consumer>
+);
+
+export default getAuthFunction;

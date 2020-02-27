@@ -5,6 +5,7 @@ const ref = database.ref()
 const express = require('express')
 const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
+const firebaseAdmin = require('../Config/firebaseAdmin')
 
 //@route    Post /login
 //@desc     login user in
@@ -25,17 +26,23 @@ router.post('/login', isAuthenticated, async (req, res) => {
 //@route    /createusers
 //@desc     create user in database
 //@access   Private
-router.post('/createusers', isAuthenticated, async (req, res) => {
-  let uid = res.locals.userID
+router.post('/createusers', async (req, res) => {
+  let { ID, name, companyName, jobPosition } = req.body
   try {
-    const usersRef = await ref.child('Users/' + uid)
-    await admin.auth().updateUser(uid, {                            
-      displayName: req.body.name
+    let user
+    if(ID){
+      user = await (await firebaseAdmin.auth().verifyIdToken(ID)).uid;
+    } else {
+      res.status(401).send('Unauthorized')
+    }
+    const usersRef = await ref.child('Users/' + user)
+    await admin.auth().updateUser(user, {                            
+      displayName: name
     })
     await usersRef.set({                                    
-      name       : req.body.name,
-      companyName: req.body.companyName,
-      jobPosition: req.body.jobPosition
+      name       : name,
+      companyName: companyName,
+      jobPosition: jobPosition
     })
     res.status(200).json({ "res": "Update Success" })
   }catch (error) {

@@ -5,7 +5,6 @@ import NotFound from "./components/NotFound";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import Popup from "./components/Popup";
-import EmployeePage from "./components/EmployeePage";
 import EmployerPage from "./components/EmployerPage";
 
 export default () =>
@@ -14,7 +13,6 @@ export default () =>
     <Route path="/login" exact component={Login} />
     <Route path="/News" exact component={Popup} />
     <Route path="/signup" exact component={Signup} />
-    <Route path="/EmployeePage" exact component={EmployeePage} />
     <Route path="/EmployerPage" exact component={EmployerPage} />
     <Route component={NotFound} />
   </Switch>;

@@ -26,9 +26,7 @@ class ClockIn extends Component {
       if (user) {
         if (user.emailVerified) {
           try {
-            let idToken = await fire.auth().currentUser.getIdToken(true)              //get ID token
             let res = await axios.post('/getClockStatus', {                     //request if user had clocked in or not
-              "id": idToken,
               "date": this.state.currentDate
             })
             if (this._isMounted) {                        //prevent state updating when component is unmounted
@@ -64,15 +62,12 @@ class ClockIn extends Component {
       if (user) {
         if (user.emailVerified) {
           try {
-            let idToken = await fire.auth().currentUser.getIdToken(true)
             await (this.state.clockedIn                           //If user already clocked in, then they are clocking out now
               ? axios.post('/clockOut', {
-                "id": idToken,
                 "date": this.state.currentDate,
                 "time": this.state.currentTime
               })
               : axios.post('/clockIn', {                    //else user has no clocked in, prompt user to clock in
-                "id": idToken,
                 "date": this.state.currentDate,
                 "time": this.state.currentTime
               })

@@ -3,43 +3,39 @@ import Routes from "./Routes";
 import "./components/styles/App.css";
 import fire from "./webConfig/Fire";
 import { withRouter } from "react-router-dom";
-import axios from "axios";
+import CustomNavbar from './components/CustomNavbar';
+import SetAuthToken from './SetAuthToken';
 import Context from './Context';
-import CustomNavbar from './components/Navbar';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isAuthenticated: false,
-      ID: null
     }
   }
 
   componentDidMount() {
-    this.authListener();
+    //this.authListener();
   }
 
   //listens for user if they are authenticated
   authListener = event => {
     fire.auth().onAuthStateChanged(async (user) => {               //call api provided by Firebase, check to see if there is user 
-
       if (user) {
         user.reload();
         if (user.emailVerified) {                       //check to see if the user verified their email
-          let idToken = await fire.auth().currentUser.getIdToken(true)      //get ID token
-          this.setState(
-            { 
-              isAuthenticated: true, 
-              ID: idToken 
-            });
-          let res = await axios.post("/login", { "id": idToken })
-          let jobPosition = res.data
-          if (jobPosition === "Worker") {
-            this.props.history.push("/EmployeePage")
-          } else {
+          try {
+            let idToken = await fire.auth().currentUser.getIdToken(true)      //get ID token
+            this.setState({ isAuthenticated: true });
+            SetAuthToken(idToken);
             this.props.history.push("/EmployerPage")
+          } catch (error) {
+            console.error(error)
           }
+        } else {
+          console.log('app.js signout')
+          fire.auth().signOut();
         }
       } else {
         this.setState({ isAuthenticated: false });
@@ -48,6 +44,7 @@ class App extends Component {
   }
 
   handleLogout = () => {
+    SetAuthToken()
     fire.auth().signOut();
     this.props.history.push("/");
   }
@@ -55,8 +52,8 @@ class App extends Component {
   render() {
     return (
       <div id="app container">
-        <CustomNavbar isAuthenticated={this.state.isAuthenticated} position={this.state.position} handleLogout={this.handleLogout} />
-        <Context.Provider value={this.state.ID}>
+        <CustomNavbar isAuthenticated={this.state.isAuthenticated} handleLogout={this.handleLogout} />
+        <Context.Provider value={this.authListener}>
           <Routes />
         </Context.Provider>
       </div>

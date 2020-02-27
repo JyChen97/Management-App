@@ -4,7 +4,6 @@ import CreatePost from "./CreatePost";
 import fire from "../webConfig/Fire";
 import axios from "axios";
 import "./styles/AnnouncementBoard.css";
-import Context from '../Context';
 
 class AnnouncementBoard extends Component {
   constructor(props) {
@@ -19,7 +18,6 @@ class AnnouncementBoard extends Component {
       post: "",
       currentDate: new Date().toLocaleDateString().replace('/', '-').replace('/', '-'), // is problematic to use "/", which would create a new directory in the database
       currentTime: new Date().toLocaleTimeString(),
-      ID: props.ID
     }
   }
 
@@ -33,10 +31,7 @@ class AnnouncementBoard extends Component {
     fire.auth().onAuthStateChanged(async (user) => {              //check if user is logged in
       if (user) {
         try {
-          let idToken = await fire.auth().currentUser.getIdToken(true)            //get user ID token
-          let res = await axios.post("/getAnnouncement", {
-            "id": idToken
-          })
+          let res = await axios.post("/getAnnouncement")
           if (this._isMounted) {                        //Check if the component is still mounted
             if (res.data.noData) {                      //If there is no data, update noData state
               this.setState({ noData: true })
@@ -89,9 +84,7 @@ class AnnouncementBoard extends Component {
     fire.auth().onAuthStateChanged(async (user) => {                  //check if user is still logged in
       if (user) {
         try {
-          let idToken = await fire.auth().currentUser.getIdToken(true)                //get ID token
           await axios.post("/createAnnouncement", {                 //Posting announcement
-            "id": idToken,
             "titlePost": titlePost,
             "newPost": newPost,
             "date": date,
@@ -149,10 +142,4 @@ class AnnouncementBoard extends Component {
   }
 }
 
-const getId = () => (
-  <Context.Consumer>
-    {value => <AnnouncementBoard ID={value} />}
-  </Context.Consumer>
-)
-
-export default getId;
+export default AnnouncementBoard;

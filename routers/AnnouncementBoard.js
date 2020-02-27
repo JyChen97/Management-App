@@ -18,7 +18,7 @@ router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
     const announcementRef = await ref.child('Announcements/' + companyName)
     const announcement = await  announcementRef.once('value')                  
     if(announcement.val() === null){
-      res.send({                                      
+      res.json({                                      
       "noData"       : true,
       "Announcements": Announcements
       })

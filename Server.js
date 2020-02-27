@@ -1,6 +1,3 @@
-//File name: Server.js
-//This file is my server, run "node Server.js" to start up the server on the command line
-//Contains all the routes for my functionalities
 const express = require('express')
 const path = require('path')
 const bodyParser = require('body-parser')
