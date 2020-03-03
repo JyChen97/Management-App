@@ -3,7 +3,7 @@
 *styling for the home page
 */
 .Home {
-  background: url('../../images/bg.jpg');
+  background: url('../images/bg.jpg');
   background-size: cover;
   height: 100vh;
   width: 100vw;

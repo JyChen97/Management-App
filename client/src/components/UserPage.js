@@ -1,26 +1,27 @@
 import React, { Component } from "react";
 import { Tab, ListGroup, Col, Row } from "react-bootstrap";
-import "./styles/UserPage.css";
+import "../styles/UserPage.css";
 import ClockIn from "./ClockIn";
 import AnnouncementBoard from "./AnnouncementBoard";
 import ViewSchedule from "./ViewSchedule";
 import UpdateInfo from "./UpdateInfo";
 
-class EmployeePage extends Component {
+class UserPage extends Component {
   constructor(props){
     super(props);
 
     this.state={
-      show: false
+      showClock: false,
+      updateSchedule: false
     };
   }
 
-handleShow = event => {
-  this.setState({show: true});
+  shouldUpdateSchedule = () =>{
+  this.setState({updateSchedule: !this.state.updateSchedule})
 }
 
-handleClose = event =>{
-  this.setState({show: false});
+displayClock = () => {
+  this.setState({showClock: !this.state.showClock});
 }
 
   render(){
@@ -36,7 +37,7 @@ handleClose = event =>{
               <ListGroup.Item action href="#link2" variant="secondary">
                 View Schedule
               </ListGroup.Item>
-              <ListGroup.Item action href="#link3" onClick={this.handleShow} variant="secondary">
+              <ListGroup.Item action href="#link3" onClick={this.displayClock} variant="secondary">
                 Timestamp
               </ListGroup.Item>
               <ListGroup.Item action href="#link4" variant="secondary">
@@ -50,10 +51,10 @@ handleClose = event =>{
                 <AnnouncementBoard />
               </Tab.Pane>
               <Tab.Pane eventKey="#link2">
-                <ViewSchedule />
+                <ViewSchedule updateSchedule={this.state.updateSchedule} shouldUpdateSchedule={this.shouldUpdateSchedule}/>
               </Tab.Pane>
               <Tab.Pane eventKey="#link3">
-                <ClockIn handleShow={this.state.show} handleClose={this.handleClose}/>
+                <ClockIn handleShow={this.state.showClock} handleClose={this.displayClock} shouldUpdateSchedule={this.shouldUpdateSchedule}/>
               </Tab.Pane>
               <Tab.Pane eventKey="#link4">
                 <UpdateInfo />
@@ -67,4 +68,4 @@ handleClose = event =>{
   }
 }
 
-export default EmployeePage;
+export default UserPage;

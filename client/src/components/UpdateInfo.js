@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { Form, Col, Row, FormGroup, Button, FormControl, Modal } from "react-bootstrap";
-import fire from "../webConfig/Fire";
 import axios from "axios";
-import "./styles/UpdateInfo.css";
+import "../styles/UpdateInfo.css";
+import Context from '../context/Context';
 
 class UpdateInfo extends Component {
   constructor(props) {
@@ -12,7 +12,8 @@ class UpdateInfo extends Component {
       password: "",
       confirmPassword: "",
       companyName: "",
-      jobPosition: "",
+      Manager: "",
+      Worker: "",
       updateSuccess: "",
       updatedEmail: false,
       notification: false
@@ -23,20 +24,21 @@ class UpdateInfo extends Component {
     return (
       this.state.name.length > 0 &&
       this.state.companyName.length > 0 &&
-      this.state.jobPosition.length > 0 &&
+      (this.state.Manager.length > 0 || this.state.Worker.length > 0) &&
       this.state.password.length > 0 &&
       this.state.password === this.state.confirmPassword
     );
   }
 
-  handleClose = event => {                        //after updates, when user close the window pop up
+  handleClose = () => {                        //after updates, when user close the window pop up
     this.setState({                               //all fields will be reset 
       notification: false,
       name: "",
       password: "",
       confirmPassword: "",
       companyName: "",
-      jobPosition: "",
+      Manager: "",
+      Worker: ""
     });
   }
 
@@ -46,30 +48,26 @@ class UpdateInfo extends Component {
     })
   }
 
-  handleSubmit = event => {
+  handleSubmit = async event => {
     event.preventDefault();
-    let { name, companyName, jobPosition, password } = this.state
-    fire.auth().onAuthStateChanged(async (user) => {            //check if user is still login
-      if (user) {
-        try {
-          let idToken = await fire.auth().currentUser.getIdToken(true)          //get Id Token
-          let res = await axios.post("/updateInfo", {                   //sends update to server
-            "id": idToken,
-            "companyName": companyName,
-            "name": name,
-            "jobPosition": jobPosition,
-            "password": password
-          })
-          this.setState({
-            updateSuccess: res.data.success,
-            notification: true
-          })
-
-        } catch (error) {
-          console.error(error)
-        }
-      }
-    })
+    const { idToken } = this.props
+    let { name, companyName, password } = this.state
+    const jobPosition = this.state.Worker.length > 0 ? this.state.Worker : this.state.Manager
+    try {
+      let res = await axios.post("/updateInfo", {                   //sends update to server
+        "id": idToken,
+        "companyName": companyName,
+        "name": name,
+        "jobPosition": jobPosition,
+        "password": password
+      })
+      this.setState({
+        updateSuccess: res.data.success,
+        notification: true
+      })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   render() {
@@ -135,20 +133,20 @@ class UpdateInfo extends Component {
                   <Form.Check
                     onChange={this.handleChange}
                     value="Manager"
-                    name="jobPosition"
+                    name="Manager"
                     inline
                     label="Manager"
                     type="radio"
-                    id="jobPosition"
+                    id="Manager"
                   />
                   <Form.Check
                     onChange={this.handleChange}
                     value="Worker"
-                    name="jobPosition"
+                    name="Worker"
                     inline
                     label="Worker"
                     type="radio"
-                    id="jobPosition"
+                    id="Worker"
                   />
                 </Col>
               </FormGroup>
@@ -185,4 +183,13 @@ class UpdateInfo extends Component {
   }
 }
 
-export default UpdateInfo;
+const getUserInfo = (props) => (
+  <Context.Consumer>
+    {(value) => {
+      const { user, idToken } = value;
+      return <UpdateInfo user={user} idToken={idToken} {...props} />
+    }}
+  </Context.Consumer>
+)
+
+export default getUserInfo;

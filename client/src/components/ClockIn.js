@@ -1,11 +1,13 @@
 import React, { Component } from "react";
 import { Modal, Button } from "react-bootstrap";
-import fire from "../webConfig/Fire";
+import Context from '../context/Context';
 import axios from "axios";
 
 class ClockIn extends Component {
   constructor(props) {
     super(props)
+
+    this.setTimeListener = null; 
     this._isMounted = false       //prevent state being updated when components are unmounted
     this.state = {
       clockedIn: false,
@@ -14,73 +16,57 @@ class ClockIn extends Component {
       currentTime: new Date().toLocaleTimeString()
     }
   }
+  getCurrentTime = () => this.setTimeListener = setInterval(()=>this.currentTime(), 1000)
 
   currentTime() {
-    if (this._isMounted) {    //check to see if this component is still mounted
+    if (this._isMounted) {   
       this.setState({ currentTime: new Date().toLocaleTimeString() })
     }
   }
 
-  getClockStatuts = event => {
-    fire.auth().onAuthStateChanged(async (user) => {                  //if user still logged in
-      if (user) {
-        if (user.emailVerified) {
-          try {
-            let res = await axios.post('/getClockStatus', {                     //request if user had clocked in or not
-              "date": this.state.currentDate
-            })
-            if (this._isMounted) {                        //prevent state updating when component is unmounted
-              this.setState({ clockedIn: res.data.clockIn })
-            }
-          } catch (error) {
-            console.error(error)
-          }
-
-        }
+  getClockStatuts = async () => {
+    try {
+      let res = await axios.post('/getClockStatus', {               
+        "date": this.state.currentDate
+      })
+      if (this._isMounted) {                       
+        this.setState({ clockedIn: res.data.clockIn })
       }
+    } catch (error) {
+      console.error(error)
     }
-    )
   }
 
   componentDidMount() {
     this._isMounted = true;
+    this.getCurrentTime();
+    this.getClockStatuts();
   }
 
   componentWillUnmount() {
     this._isMounted = false;
+    clearInterval(this.setTimeListener);
   }
 
-  componentWillMount() {
-    setInterval(() =>
-      this.currentTime(), 1000
-    )
-    this.getClockStatuts()
-  }
-
-  handleSubmit = () => {
-    fire.auth().onAuthStateChanged(async (user) => {
-      if (user) {
-        if (user.emailVerified) {
-          try {
-            await (this.state.clockedIn                           //If user already clocked in, then they are clocking out now
-              ? axios.post('/clockOut', {
-                "date": this.state.currentDate,
-                "time": this.state.currentTime
-              })
-              : axios.post('/clockIn', {                    //else user has no clocked in, prompt user to clock in
-                "date": this.state.currentDate,
-                "time": this.state.currentTime
-              })
-            )
-            if (this._isMounted) {
-              this.getClockStatuts()
-            }
-          } catch (error) {
-            console.error(error)
-          }
-        }
+  handleSubmit = async () => {
+    try {
+      await (this.state.clockedIn                           //If user already clocked in, then they are clocking out now
+        ? axios.post('/clockOut', {
+          "date": this.state.currentDate,
+          "time": this.state.currentTime
+        })
+        : axios.post('/clockIn', {                    //else user has no clocked in, prompt user to clock in
+          "date": this.state.currentDate,
+          "time": this.state.currentTime
+        })
+      )
+      if (this._isMounted) {
+        this.getClockStatuts()
+        this.props.shouldUpdateSchedule()
       }
-    })
+    } catch (error) {
+      console.error(error)
+    }
     this.props.handleClose();
   }
 
@@ -111,4 +97,14 @@ class ClockIn extends Component {
   }
 }
 
-export default ClockIn;
+const getUserInfo = (props) => (
+  <Context.Consumer>
+    {(value) => {
+      const { user, idToken } = value;
+      return <ClockIn user={user} idToken={idToken} {...props} />
+    }
+    }
+  </Context.Consumer>
+)
+
+export default getUserInfo;

@@ -9,7 +9,7 @@ const CustomNavbar = (props) => (
     <Navbar.Collapse id="basic-navbar-nav">
       <Nav className="mr-auto">
         {props.isAuthenticated ?
-          <Nav.Link as={Link} to="/EmployerPage" href="/EmployerPage">Dashboard</Nav.Link> : null}
+          <Nav.Link as={Link} to="/UserPage" href="/UserPage">Dashboard</Nav.Link> : null}
       </Nav>
       {props.isAuthenticated
         ? <Nav.Item >

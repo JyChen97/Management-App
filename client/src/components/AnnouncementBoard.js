@@ -1,9 +1,10 @@
 import React, { Component } from "react";
 import { Button, Col } from "react-bootstrap";
 import CreatePost from "./CreatePost";
-import fire from "../webConfig/Fire";
 import axios from "axios";
-import "./styles/AnnouncementBoard.css";
+import Context from '../context/Context';
+import "../styles/AnnouncementBoard.css";
+import Spinner from './Spinner';
 
 class AnnouncementBoard extends Component {
   constructor(props) {
@@ -16,49 +17,44 @@ class AnnouncementBoard extends Component {
       createPost: false,
       title: "",
       post: "",
-      currentDate: new Date().toLocaleDateString().replace('/', '-').replace('/', '-'), // is problematic to use "/", which would create a new directory in the database
-      currentTime: new Date().toLocaleTimeString(),
+      dateAndTime : null,
+      loading: false
     }
   }
 
-  currentTime() {
-    if (this._isMounted) {        //Check if the component is still mounted
-      this.setState({ currentTime: new Date().toLocaleTimeString() })     //update the time and date for every second
+  setDateAndTime() {
+    if (this._isMounted) {
+      this.setState({ dateAndTime: new Date().toLocaleDateString().replace('/', '-').replace('/', '-') + ' ' + new Date().toLocaleTimeString()}) 
     }
   }
 
-  getAnnouncements = () => {
-    fire.auth().onAuthStateChanged(async (user) => {              //check if user is logged in
-      if (user) {
-        try {
-          let res = await axios.post("/getAnnouncement")
-          if (this._isMounted) {                        //Check if the component is still mounted
-            if (res.data.noData) {                      //If there is no data, update noData state
-              this.setState({ noData: true })
-            } else {
-              this.setState({
-                announcements: res.data.Announcements       //else update the announcement array
-              })
-            }
-          }
-        } catch (error) {
-          console.error(error)
+  getAnnouncements = async () => {
+    try {
+      let res = await axios.post("/getAnnouncement")
+      if (this._isMounted) {
+        this.setState({ loading: false })
+        if (res.data.noData) {                      //If there is no data, update noData state
+          this.setState({ noData: true })
+        } else {
+          this.setState({
+            announcements: res.data.Announcements       //else update the announcement array
+          })
         }
       }
-    })
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   componentDidMount() {
     this._isMounted = true;
+    this.setState({ loading: true })
+    this.getAnnouncements()
+    this.setDateAndTime();
   }
 
   componentWillUnmount() {
     this._isMounted = false;
-  }
-
-  componentWillMount() {
-    this.getAnnouncements()
-
   }
 
   handleChange = event => {
@@ -67,40 +63,28 @@ class AnnouncementBoard extends Component {
     })
   }
 
-  handleCreatePost = event => {
-    this.setState({ createPost: true })
+  handlePostForm = () => {
+    this.setState({ createPost: !this.state.createPost })
   }
 
-  handleClose = event => {
-    this.setState({ createPost: false })
-  }
-
-  handlePost = event => {
+  handlePost = async event => {
     event.preventDefault();
-    var titlePost = this.state.title
-    var newPost = this.state.post
-    var date = this.state.currentDate
-    var time = this.state.currentTime
-    fire.auth().onAuthStateChanged(async (user) => {                  //check if user is still logged in
-      if (user) {
-        try {
-          await axios.post("/createAnnouncement", {                 //Posting announcement
-            "titlePost": titlePost,
-            "newPost": newPost,
-            "date": date,
-            "time": time
-          })
-          if (this._isMounted) {
-            this.setState({ createPost: false })            //close the create post modal
-            this.getAnnouncements()                       //get announcement after posting a new one
-          }
-        } catch (error) {
-          console.error(error)
-        }
+    let { title, post, dateAndTime } = this.state;
+    try {
+      await axios.post("/createAnnouncement", {                 //Posting announcement
+        "postTitle": title,
+        "postContent": post,
+        dateAndTime
+      })
+      if (this._isMounted) {
+        this.setState({ createPost: false, loading: true })            //close the create post modal
+        this.getAnnouncements()                       //get announcement after posting a new one
+        this.setDateAndTime()
       }
-    })
+    } catch (error) {
+      console.log( error.response)
+    }
   }
-
 
   render() {
     var announcements = this.state.announcements.map((announcement, i) => (        //Seperate the array into divs for render 
@@ -111,35 +95,47 @@ class AnnouncementBoard extends Component {
       </div>
     ))
 
-    return (
-      <div>
-        <Col sm={{ span: 2, offset: 10 }}>
-          <Button
-            hidden={this.props.Employee}          //if is employee, can't create new announcement
-            type="submit"
-            onClick={this.handleCreatePost}
-          >
-            Create
+    return this.state.loading ?
+        <Spinner />
+      : (
+        <div>
+          <Col sm={{ span: 2, offset: 10 }}>
+            <Button
+              hidden={this.props.Employee}          //if is employee, can't create new announcement
+              type="submit"
+              onClick={this.handlePostForm}
+            >
+              Create
           </Button>
-        </Col>
-        <CreatePost                                  //This component here is the window popup that creates new announcements
-          show={this.state.createPost}               //Passes down the function and the require state for creating post
-          close={this.handleClose}
-          submit={this.handlePost}
-          change={this.handleChange}
-          post={this.state.post}
-          title={this.state.title}
-        />
+          </Col>
+          <CreatePost                                  //This component here is the window popup that creates new announcements
+            show={this.state.createPost}               //Passes down the function and the require state for creating post
+            close={this.handlePostForm}
+            submit={this.handlePost}
+            change={this.handleChange}
+            post={this.state.post}
+            title={this.state.title}
+          />
 
-        {this.state.announcements.length                  //checks if there are announcements
-          ? announcements
-          : this.state.noData                             //Check if the page is current loading or if there is no announcement 
-            ? <div>No Announcements</div>
-            : <div>Loading . . .</div>
-        }
-      </div>
-    )
+          {this.state.announcements.length                  //checks if there are announcements
+            ? announcements
+            : this.state.noData                             //Check if the page is current loading or if there is no announcement 
+              ? <div>No Announcements</div>
+              : <div>Loading . . .</div>
+          }
+        </div>
+      )
   }
 }
 
-export default AnnouncementBoard;
+const getUserInfo = (props) => (
+  <Context.Consumer>
+    {(value) => {
+      const { user, idToken } = value;
+      return <AnnouncementBoard user={user} idToken={idToken} {...props} />
+    }
+    }
+  </Context.Consumer>
+)
+
+export default getUserInfo;

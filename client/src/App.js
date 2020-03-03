@@ -1,51 +1,49 @@
 import React, { Component } from "react";
-import Routes from "./Routes";
-import "./components/styles/App.css";
+import Routes from "./routes/Routes";
+import "./styles/App.css";
 import fire from "./webConfig/Fire";
-import { withRouter } from "react-router-dom";
 import CustomNavbar from './components/CustomNavbar';
-import SetAuthToken from './SetAuthToken';
-import Context from './Context';
+import SetAuthToken from './Auth/SetAuthToken';
+import Context from './context/Context';
+import { withRouter } from "react-router-dom";
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isAuthenticated: false,
+      user: null,
+      idToken: null
     }
   }
 
   componentDidMount() {
-    //this.authListener();
+    SetAuthToken();
+    this.authListener();
+  }
+
+  componentWillUnmount() {
+    this.handleLogout();
   }
 
   //listens for user if they are authenticated
-  authListener = event => {
+  authListener = () => {
     fire.auth().onAuthStateChanged(async (user) => {               //call api provided by Firebase, check to see if there is user 
-      if (user) {
-        user.reload();
-        if (user.emailVerified) {                       //check to see if the user verified their email
-          try {
-            let idToken = await fire.auth().currentUser.getIdToken(true)      //get ID token
-            this.setState({ isAuthenticated: true });
-            SetAuthToken(idToken);
-            this.props.history.push("/EmployerPage")
-          } catch (error) {
-            console.error(error)
-          }
-        } else {
-          console.log('app.js signout')
-          fire.auth().signOut();
-        }
-      } else {
-        this.setState({ isAuthenticated: false });
+      if(user){
+        let idToken = await fire.auth().currentUser.getIdToken(true)
+        this.setState({user, idToken, isAuthenticated: true});
+        sessionStorage.setItem('idToken', idToken)
+        SetAuthToken();
+      }else{
+        this.setState({user: null, idToken: null, isAuthenticated: false});
       }
     })
   }
 
   handleLogout = () => {
-    SetAuthToken()
     fire.auth().signOut();
+    sessionStorage.removeItem('idToken')
+    SetAuthToken()
     this.props.history.push("/");
   }
 
@@ -53,7 +51,7 @@ class App extends Component {
     return (
       <div id="app container">
         <CustomNavbar isAuthenticated={this.state.isAuthenticated} handleLogout={this.handleLogout} />
-        <Context.Provider value={this.authListener}>
+        <Context.Provider value={this.state}>
           <Routes />
         </Context.Provider>
       </div>

@@ -37,19 +37,19 @@ router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
 //@access   Private
 router.post('/createAnnouncement', isAuthenticated, async (req, res) =>{
   let uid = res.locals.userID
-  let dateAndTime = req.body.date + " " + req.body.time
+  const { dateAndTime, postTitle, postContent } = req.body
   try{
+    if(!dateAndTime || !postTitle || !postContent){
+      throw new Error('Incorrect Input Fields')
+    }
     const usersRef = await ref.child('Users/' + uid)
     const snapshot = await usersRef.once('value')
     const companyName = await snapshot.val().companyName
     const announcementRef = await ref.child('Announcements/' + companyName + '/' + dateAndTime)    
-    await announcementRef.set({
-        postTitle   : req.body.titlePost,
-        postContent : req.body.newPost
-    })
+    await announcementRef.set({ postTitle, postContent })
     res.status(200).json({ "newPost" : "Created new post" })
   } catch (error) {
-    res.status(500)
+    res.status(400).json(error)
   }
 })
 

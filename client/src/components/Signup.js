@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import { FormGroup, FormControl, FormLabel, Button, Form, Row, Col } from "react-bootstrap";
-import "./styles/Signup.css";
+import "../styles/Signup.css";
 import fire from "../webConfig/Fire";
 import axios from "axios";
 import VerificationModal from './VerificationModal';
-import Context from '../Context';
+import Context from '../context/Context';
 
 class Signup extends Component {
   constructor(props) {
@@ -19,7 +19,8 @@ class Signup extends Component {
       show: false,
       companyName: "",
       name: "",
-      jobPosition: "",
+      Manager: "",
+      Worker: ""
     };
   }
 
@@ -28,26 +29,28 @@ class Signup extends Component {
       this.state.name.length > 0 &&
       this.state.companyName.length > 0 &&
       this.state.email.length > 0 &&
-      this.state.jobPosition.length > 0 &&
+      (this.state.Manager.length > 0 || this.state.Worker.length > 0) &&
       this.state.password.length > 0 &&
       this.state.password === this.state.confirmPassword
     );
   }
 
   verification = async () => {
+    const { user } = this.props;
     this.setState({
       error: false,
       show: false
     })
     try {
-      await fire.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
-      fire.auth().onAuthStateChanged(user => {          //user automatically logs in without the need for email verification
-        if (user && !user.emailVerified) {              //this statement enforce the user to verified their email or else they'll be able to login 
+      if (user) {
+        await user.reload()
+        if (!user.emailVerified) {              //this statement enforce the user to verified their email or else they'll be able to login 
           fire.auth().signOut();
           this.setState({ registrationError: "Need Verification" })
+        } else {
+          this.props.history.push("/UserPage")
         }
-        this.props.oAuth();
-      })
+      }
     } catch (error) {
       console.log(error)
     }
@@ -61,14 +64,14 @@ class Signup extends Component {
 
   handleSubmit = async event => {
     event.preventDefault();
-    const { name, companyName, jobPosition, email, password } = this.state
+    const { name, companyName, email, password } = this.state;
+    const jobPosition = this.state.Worker.length > 0 ? this.state.Worker : this.state.Manager
+    console.log(jobPosition + ' handleSubmit')
     try {
       await fire.auth().createUserWithEmailAndPassword(email, password)     //create a new user using Firebase function
-      fire.auth().onAuthStateChanged(async (user) => {                  //once created, there will exist a user
-        
+      setTimeout(async () => {                                  //requies time to update the state after receiving the user object from firebase
+        const { user, idToken } = this.props;
         if (user) {
-          console.log('signup auth state')
-          let idToken = await fire.auth().currentUser.getIdToken(true)
           await axios.post("/createusers", {                    //This will update the database
             "ID": idToken,
             "companyName": companyName,
@@ -82,7 +85,7 @@ class Signup extends Component {
             registrationError: "Need Verification"
           });
         }
-      })
+      }, 1800)
     } catch (error) {                                     //Display error when user entered wrong creditials
       let errorCode = error.code;
       if (errorCode === 'auth/email-already-in-use') {
@@ -145,7 +148,7 @@ class Signup extends Component {
               placeholder="Company"
             />
           </FormGroup>
-          <FormGroup as={Row} controlId="jobPosition ">
+          <FormGroup as={Row} controlId="jobPosition">
             <Form.Label column sm={5}>
               Job Position
             </Form.Label>
@@ -157,7 +160,7 @@ class Signup extends Component {
                 inline
                 label="Manager"
                 type="radio"
-                id="jobPosition"
+                id="Manager"
               />
               <Form.Check
                 onChange={this.handleChange}
@@ -166,7 +169,7 @@ class Signup extends Component {
                 inline
                 label="Worker"
                 type="radio"
-                id="jobPosition"
+                id="Worker"
               />
             </Col>
           </FormGroup>
@@ -190,10 +193,14 @@ class Signup extends Component {
   }
 }
 
-const getAuthFunction = () => (
+const getUserInfo = (props) => (
   <Context.Consumer>
-    {value => <Signup oAuth={value}/>}
+    {(value) => {
+      const { user, idToken } = value;
+      return <Signup user={user} idToken={idToken} {...props} />
+    }
+    }
   </Context.Consumer>
-);
+)
 
-export default getAuthFunction;
+export default getUserInfo;

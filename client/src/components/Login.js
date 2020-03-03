@@ -1,7 +1,9 @@
 import React, { Component } from "react";
 import { Button, FormGroup, FormControl, FormLabel } from "react-bootstrap";
-import "./styles/Login.css";
+import "../styles/Login.css";
 import fire from "../webConfig/Fire";
+import Context from '../context/Context';
+import Spinner from './Spinner';
 
 class Login extends Component {
   constructor(props) {
@@ -10,7 +12,8 @@ class Login extends Component {
       email: "",
       password: "",
       err: "",
-      jobPosition: null
+      jobPosition: null,
+      loading: false
     }
   }
 
@@ -29,15 +32,23 @@ class Login extends Component {
 
   handleSubmit = async (event) => {
     event.preventDefault();
+
     try {
       await fire.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
-      fire.auth().onAuthStateChanged(user => {          //check if user is still logged in
-        if (user && !user.emailVerified) {                         //checks if the user verified their email
-          user.sendEmailVerification();                 //if user didn't verified their email, send then verification email
-          fire.auth().signOut();
-          this.setState({ err: "Requires Verification" })
+      this.setState({loading: true});
+      setTimeout( () => {                            //takes awhile for the state to update when firebase returns the user object
+        const { user } = this.props;
+        if (user) {
+          if (!user.emailVerified) {
+            user.sendEmailVerification();                 //if user didn't verified their email, send then verification email
+            fire.auth().signOut();
+            this.setState({ err: "Requires Verification" });
+          } else {
+            this.setState({loading: false});
+            this.props.history.push("/UserPage")
+          }
         }
-      })
+      }, 1800)
     } catch (error) {
       let errorCode = error.code;
       if (errorCode === 'auth/wrong-password') {
@@ -52,40 +63,50 @@ class Login extends Component {
     }
   }
 
-  render() {
-    return (
-      <div className="Login">
-        <form onSubmit={this.handleSubmit}>
-          <FormGroup controlId="email">
-            <FormLabel>Email</FormLabel>
-            <FormControl
-              autoFocus
-              type="email"
-              value={this.state.email}
-              onChange={this.handleChange}
-            />
-          </FormGroup>
-          <FormGroup controlId="password">
-            <FormLabel>Password</FormLabel>
-            <FormControl
-              value={this.state.password}
-              onChange={this.handleChange}
-              type="password"
-            />
-          </FormGroup>
-          <p className="Err">{this.state.err}</p>
-          <Button
-            block
-            disabled={!this.validateForm()}
-            type="submit"
-            onClick={this.handleSubmit}
-          >
-            Login
+render() {
+  return this.state.loading? <Spinner /> : (
+    <div className="Login">
+      <form onSubmit={this.handleSubmit}>
+        <FormGroup controlId="email">
+          <FormLabel>Email</FormLabel>
+          <FormControl
+            autoFocus
+            type="email"
+            value={this.state.email}
+            onChange={this.handleChange}
+          />
+        </FormGroup>
+        <FormGroup controlId="password">
+          <FormLabel>Password</FormLabel>
+          <FormControl
+            value={this.state.password}
+            onChange={this.handleChange}
+            type="password"
+          />
+        </FormGroup>
+        <p className="Err">{this.state.err}</p>
+        <Button
+          block
+          disabled={!this.validateForm()}
+          type="submit"
+          onClick={this.handleSubmit}
+        >
+          Login
           </Button>
-        </form>
-      </div>
-    );
-  }
+      </form>
+    </div>
+  );
+}
 }
 
-export default Login;
+const getUserInfo = (props) => (
+  <Context.Consumer>
+    {(value) => {
+      const { user } = value;
+      return <Login user={user} {...props}/>
+    }
+    }
+  </Context.Consumer>
+)
+
+export default getUserInfo;

@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const setAuthToken = token => {
+const setAuthToken = () => {
+  let token = sessionStorage.getItem('idToken')
+
   if (token) {
     axios.defaults.headers.common['x-auth-token'] = token;
   } else {

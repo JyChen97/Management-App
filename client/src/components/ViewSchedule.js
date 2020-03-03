@@ -1,45 +1,57 @@
 import React, { Component } from "react";
 import { Table } from "react-bootstrap";
 import axios from "axios";
-import fire from "../webConfig/Fire";
+import Context from '../context/Context';
 
 class ViewSchedule extends Component {
   constructor(props) {
     super(props);
+
+    this.setSchduleListener = null;
+    this.isMount = false;
     this.state = {
       clockTimestamp: {},
       noData: false
     }
   }
 
-  getTimestamp = () => {
-    fire.auth().onAuthStateChanged(async (user) => {            //see if user still logged in
-      if (user) {
-        try {
-          let idToken = await fire.auth().currentUser.getIdToken(true)        //get ID token
-          let res = await axios.post('/getSchedule', {                //request for schedule
-            "id": idToken
-          })
+  timelistener = () => { 
+    this.setSchduleListener = setInterval(() => {
+      if(this.props.updateSchedule){
+        this.getTimestamp()
+        this.props.shouldUpdateSchedule()
+      }
+    }, 1000)
+  }
+
+  getTimestamp = async () => {
+    const { idToken } = this.props
+    if (this.isMount) {           
+      try {
+        let res = await axios.post('/getSchedule', {                //request for schedule
+          "id": idToken
+        })
+        if(this.isMount){
           this.setState({
             clockTimestamp: res.data.timeStamp,
             noData: res.data.noData
           })
-        } catch (error) {
-          console.error(error)
         }
+      } catch (error) {                    //only error here is when user log out, axios x-auth header is set to null. We clear interval.
+        clearInterval(this.setSchduleListener);      
       }
-    })
+    }
   }
 
   componentDidMount() {
-    this.setState({})
-    setInterval(() =>
-      this.getTimestamp(), 1000                   //update the table every second so when user clock in or clock out, 
-    )                                             //the schedule is displayed
+    this.isMount = true;
+    this.timelistener();
+    this.getTimestamp();
   }
 
-  componentWillMount() {
-    this.getTimestamp()
+  componentWillUnmount() {
+    this.isMount = false;
+    clearInterval(this.setSchduleListener);
   }
 
   render() {
@@ -79,4 +91,14 @@ class ViewSchedule extends Component {
   }
 }
 
-export default ViewSchedule;
+const getUserInfo = (props) => (
+  <Context.Consumer>
+    {(value) => {
+      const { idToken } = value
+      return <ViewSchedule idToken={idToken} {...props} />
+    }
+    }
+  </Context.Consumer>
+)
+
+export default getUserInfo;
