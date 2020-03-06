@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Form, Col, Row, FormGroup, Button, FormControl, Modal } from "react-bootstrap";
+import { Form, Button, FormControl, Modal, Spinner } from "react-bootstrap";
 import axios from "axios";
 import "../styles/UpdateInfo.css";
 import Context from '../context/Context';
@@ -12,11 +12,12 @@ class UpdateInfo extends Component {
       password: "",
       confirmPassword: "",
       companyName: "",
-      Manager: "",
-      Worker: "",
       updateSuccess: "",
       updatedEmail: false,
-      notification: false
+      notification: false,
+      Worker: "",
+      Manager: "",
+      loading: false
     }
   }
 
@@ -24,7 +25,7 @@ class UpdateInfo extends Component {
     return (
       this.state.name.length > 0 &&
       this.state.companyName.length > 0 &&
-      (this.state.Manager.length > 0 || this.state.Worker.length > 0) &&
+      (this.state.Worker.length > 0 || this.state.Manager.length > 0) &&
       this.state.password.length > 0 &&
       this.state.password === this.state.confirmPassword
     );
@@ -37,12 +38,19 @@ class UpdateInfo extends Component {
       password: "",
       confirmPassword: "",
       companyName: "",
+      Worker: "",
       Manager: "",
-      Worker: ""
+      loading: false
     });
   }
 
   handleChange = event => {
+    if (event.target.id === "Manager") {
+      this.setState({ Worker: "" })
+    } else if (event.target.id === "Worker") {
+      this.setState({ Manager: "" })
+    }
+
     this.setState({
       [event.target.id]: event.target.value
     })
@@ -50,9 +58,10 @@ class UpdateInfo extends Component {
 
   handleSubmit = async event => {
     event.preventDefault();
+    this.setState({loading: true})
     const { idToken } = this.props
     let { name, companyName, password } = this.state
-    const jobPosition = this.state.Worker.length > 0 ? this.state.Worker : this.state.Manager
+    let jobPosition = this.state.Manager.length > 0 ? this.state.Manager : this.state.Worker
     try {
       let res = await axios.post("/updateInfo", {                   //sends update to server
         "id": idToken,
@@ -61,9 +70,10 @@ class UpdateInfo extends Component {
         "jobPosition": jobPosition,
         "password": password
       })
+      this.props.setJobPosition(jobPosition)
       this.setState({
         updateSuccess: res.data.success,
-        notification: true
+        notification: true,
       })
     } catch (error) {
       console.error(error)
@@ -74,119 +84,121 @@ class UpdateInfo extends Component {
     return (
       <div className="UpdateInfo">
         <Form>
-          <Row>
-            <Col sm={10}>
-              <Form.Row>
-                <Form.Group as={Col} controlId="name">
-                  <Form.Label>Name</Form.Label>
-                  <FormControl
-                    autoFocus
-                    type="text"
-                    value={this.state.name}
-                    onChange={this.handleChange}
-                    placeholder="Full name"
-                  />
-                </Form.Group>
-              </Form.Row>
+          <Form.Group controlId="name">
+            <Form.Label>Name</Form.Label>
+            <FormControl
+              autoFocus
+              type="text"
+              value={this.state.name}
+              onChange={this.handleChange}
+              placeholder="Full name"
+            />
+          </Form.Group>
 
-              <Form.Row>
-                <Form.Group as={Col} controlId="password">
-                  <Form.Label>Password</Form.Label>
-                  <FormControl
-                    type="password"
-                    placeholder="Password"
-                    onChange={this.handleChange}
-                    value={this.state.password}
-                  />
-                </Form.Group>
-              </Form.Row>
+          <Form.Group controlId="password">
+            <Form.Label>Password</Form.Label>
+            <FormControl
+              type="password"
+              placeholder="Password"
+              onChange={this.handleChange}
+              value={this.state.password}
+            />
+          </Form.Group>
 
-              <Form.Row>
-                <Form.Group as={Col} controlId="confirmPassword">
-                  <Form.Label>Confirm Password</Form.Label>
-                  <FormControl
-                    type="password"
-                    placeholder="Confirm Password"
-                    onChange={this.handleChange}
-                    value={this.state.confirmPassword}
-                  />
-                </Form.Group>
-              </Form.Row>
+          <Form.Group controlId="confirmPassword">
+            <Form.Label>Confirm Password</Form.Label>
+            <FormControl
+              type="password"
+              placeholder="Confirm Password"
+              onChange={this.handleChange}
+              value={this.state.confirmPassword}
+            />
+          </Form.Group>
 
-              <Form.Row>
-                <Form.Group as={Col} controlId="companyName">
-                  <Form.Label >Company</Form.Label>
-                  <FormControl
-                    type="text"
-                    placeholder="Company"
-                    onChange={this.handleChange}
-                    value={this.state.companyName}
-                  />
-                </Form.Group>
-              </Form.Row>
+          <Form.Group controlId="companyName">
+            <Form.Label>Company Name</Form.Label>
+            <FormControl
+              type="text"
+              placeholder="Company"
+              onChange={this.handleChange}
+              value={this.state.companyName}
+            />
+          </Form.Group>
 
-              <FormGroup as={Row} controlId="jobPosition">
-                <Form.Label column sm={3}>
-                  Job Position
-                  </Form.Label>
-                <Col sm={9}>
-                  <Form.Check
-                    onChange={this.handleChange}
-                    value="Manager"
-                    name="Manager"
-                    inline
-                    label="Manager"
-                    type="radio"
-                    id="Manager"
-                  />
-                  <Form.Check
-                    onChange={this.handleChange}
-                    value="Worker"
-                    name="Worker"
-                    inline
-                    label="Worker"
-                    type="radio"
-                    id="Worker"
-                  />
-                </Col>
-              </FormGroup>
+          <Form.Group controlId="jobPosition" style={{ display: "flex", justifyContent: "space-between" }}>
+            <Form.Label>Job Position</Form.Label>
+            <div>
+              <Form.Check
+                inline
+                id="Manager"
+                onChange={this.handleChange}
+                value="Manager"
+                name="jobPosition"
+                label="Manager"
+                type="radio"
+                checked={this.state.Manager}
+              />
+              <Form.Check
+                inline
+                id="Worker"
+                onChange={this.handleChange}
+                value="Worker"
+                name="jobPosition"
+                label="Staff"
+                type="radio"
+                checked={this.state.Worker}
+              />
+            </div>
+          </Form.Group>
 
-              <Modal show={this.state.notification} onHide={this.handleClose}>
-                <Modal.Header closeButton>
-                  <Modal.Title>Update Success</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  <p>{this.state.updateSuccess}</p>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="secondary" onClick={this.handleClose}>
-                    ok
-                    </Button>
-                </Modal.Footer>
-              </Modal>
 
-              <Col sm={{ span: 2, offset: 10 }}>
-                <Button
-                  block
-                  disabled={!this.validateForm()}
-                  type="submit"
-                  onClick={this.handleSubmit}
-                >
-                  Update
+          {this.state.loading? (
+            <Button variant="primary" type="submit" block disabled>
+            <Spinner
+              as="span"
+              animation="grow"
+              size="sm"
+              role="status"
+              aria-hidden="true"
+            />
+              Loading...
             </Button>
-              </Col>
-            </Col>
-          </Row>
+          ) : (
+            <Button
+            variant="primary"
+            type="submit"
+            block
+            disabled={!this.validateForm()}
+            onClick={this.handleSubmit}
+            >
+              Submit Update
+            </Button>
+          )}
         </Form>
+
+        <Modal show={this.state.notification} onHide={this.handleClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Update Success</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>{this.state.updateSuccess}</p>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={this.handleClose}>
+              ok
+            </Button>
+          </Modal.Footer>
+        </Modal>
+
       </div>
-    );
+    )
   }
 }
 
 const getUserInfo = (props) => (
   <Context.Consumer>
     {(value) => {
-      const { user, idToken } = value;
+      const { user, idToken } = value.state;
       return <UpdateInfo user={user} idToken={idToken} {...props} />
     }}
   </Context.Consumer>

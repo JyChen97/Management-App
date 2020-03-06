@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { FormGroup, FormControl, FormLabel, Button, Form, Row, Col } from "react-bootstrap";
+import { FormGroup, FormControl, FormLabel, Button, Form, Row, Col, Spinner } from "react-bootstrap";
 import "../styles/Signup.css";
 import fire from "../webConfig/Fire";
 import axios from "axios";
@@ -20,7 +20,8 @@ class Signup extends Component {
       companyName: "",
       name: "",
       Manager: "",
-      Worker: ""
+      Worker: "",
+      loading: false
     };
   }
 
@@ -39,7 +40,8 @@ class Signup extends Component {
     const { user } = this.props;
     this.setState({
       error: false,
-      show: false
+      show: false,
+      loading: false
     })
     try {
       if (user) {
@@ -64,9 +66,9 @@ class Signup extends Component {
 
   handleSubmit = async event => {
     event.preventDefault();
+    this.setState({ loading: true })
     const { name, companyName, email, password } = this.state;
     const jobPosition = this.state.Worker.length > 0 ? this.state.Worker : this.state.Manager
-    console.log(jobPosition + ' handleSubmit')
     try {
       await fire.auth().createUserWithEmailAndPassword(email, password)     //create a new user using Firebase function
       setTimeout(async () => {                                  //requies time to update the state after receiving the user object from firebase
@@ -85,8 +87,9 @@ class Signup extends Component {
             registrationError: "Need Verification"
           });
         }
-      }, 1800)
+      }, 3000)
     } catch (error) {                                     //Display error when user entered wrong creditials
+      this.setState({loading: false})
       let errorCode = error.code;
       if (errorCode === 'auth/email-already-in-use') {
         this.setState({ registrationError: "Email Already Exist" })
@@ -167,7 +170,7 @@ class Signup extends Component {
                 value="Worker"
                 name="jobPosition"
                 inline
-                label="Worker"
+                label="Staff"
                 type="radio"
                 id="Worker"
               />
@@ -179,14 +182,29 @@ class Signup extends Component {
           {/*Prompt user to verify their email, or log them out when they clicked close button */}
           <VerificationModal show={this.state.show} verification={this.verification} />
 
-          <Button
-            block
-            disabled={!this.validateForm()}
-            type="submit"
-            onClick={this.handleSubmit}
-          >
-            Sign Up
+          {this.state.loading ? (
+            <Button type="submit" block disabled>
+              <Spinner
+                as="span"
+                animation="grow"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
+              Loading...
             </Button>
+          ) : (
+            <Button
+              block
+              disabled={!this.validateForm()}
+              type="submit"
+              onClick={this.handleSubmit}
+            >
+              Sign Up
+            </Button>
+            )
+          }
+
         </form>
       </div>
     );
@@ -196,7 +214,7 @@ class Signup extends Component {
 const getUserInfo = (props) => (
   <Context.Consumer>
     {(value) => {
-      const { user, idToken } = value;
+      const { user, idToken } = value.state;
       return <Signup user={user} idToken={idToken} {...props} />
     }
     }

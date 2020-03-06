@@ -5,7 +5,7 @@ const express = require('express')
 const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
 
-//@route    /getAnnouncement
+//@route    Post /getAnnouncement
 //@desc     fetch announcements for user
 //@access   Private
 router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
@@ -27,12 +27,13 @@ router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
       res.json({ "Announcements": Announcements })
     }
   } catch(error) {
+    console.log(error)
     res.status(500)
   }
 })
 
 
-//@route    /createAnnouncement
+//@route    Post /createAnnouncement
 //@desc     allow manager to create announcement 
 //@access   Private
 router.post('/createAnnouncement', isAuthenticated, async (req, res) =>{
@@ -46,7 +47,7 @@ router.post('/createAnnouncement', isAuthenticated, async (req, res) =>{
     const snapshot = await usersRef.once('value')
     const companyName = await snapshot.val().companyName
     const announcementRef = await ref.child('Announcements/' + companyName + '/' + dateAndTime)    
-    await announcementRef.set({ postTitle, postContent })
+    await announcementRef.set({ postTitle, postContent, dateAndTime })
     res.status(200).json({ "newPost" : "Created new post" })
   } catch (error) {
     res.status(400).json(error)

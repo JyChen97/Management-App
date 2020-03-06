@@ -94,7 +94,7 @@ class ViewSchedule extends Component {
 const getUserInfo = (props) => (
   <Context.Consumer>
     {(value) => {
-      const { idToken } = value
+      const { idToken } = value.state
       return <ViewSchedule idToken={idToken} {...props} />
     }
     }

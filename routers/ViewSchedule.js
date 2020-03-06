@@ -5,7 +5,7 @@ const express = require('express')
 const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
 
-//@route    /getSchedule
+//@route    Post /getSchedule
 //@desc     fetch user's timestamp 
 //@access   Private
 router.post('/getSchedule', isAuthenticated, async (req, res) => {

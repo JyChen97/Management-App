@@ -100,7 +100,7 @@ class ClockIn extends Component {
 const getUserInfo = (props) => (
   <Context.Consumer>
     {(value) => {
-      const { user, idToken } = value;
+      const { user, idToken } = value.state;
       return <ClockIn user={user} idToken={idToken} {...props} />
     }
     }

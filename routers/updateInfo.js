@@ -5,7 +5,7 @@ const express = require('express')
 const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
 
-//@route    /updateInfo
+//@route    Post /updateInfo
 //@desc     allow users to update their information
 //@access   Private
 router.post('/updateInfo', isAuthenticated, async (req, res) => {

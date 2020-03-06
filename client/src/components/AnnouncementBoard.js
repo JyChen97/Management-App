@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Button, Col } from "react-bootstrap";
+import { Button, Accordion, Card, } from "react-bootstrap";
 import CreatePost from "./CreatePost";
 import axios from "axios";
 import Context from '../context/Context';
@@ -17,22 +17,23 @@ class AnnouncementBoard extends Component {
       createPost: false,
       title: "",
       post: "",
-      dateAndTime : null,
+      dateAndTime: null,
       loading: false
     }
   }
 
   setDateAndTime() {
     if (this._isMounted) {
-      this.setState({ dateAndTime: new Date().toLocaleDateString().replace('/', '-').replace('/', '-') + ' ' + new Date().toLocaleTimeString()}) 
+      this.setState({ dateAndTime: new Date().toLocaleDateString().replace('/', '-').replace('/', '-') + ' ' + new Date().toLocaleTimeString() })
     }
   }
 
   getAnnouncements = async () => {
     try {
+      this.setState({loading: true})
       let res = await axios.post("/getAnnouncement")
       if (this._isMounted) {
-        this.setState({ loading: false })
+        this.setState({loading: false})
         if (res.data.noData) {                      //If there is no data, update noData state
           this.setState({ noData: true })
         } else {
@@ -48,7 +49,6 @@ class AnnouncementBoard extends Component {
 
   componentDidMount() {
     this._isMounted = true;
-    this.setState({ loading: true })
     this.getAnnouncements()
     this.setDateAndTime();
   }
@@ -77,37 +77,43 @@ class AnnouncementBoard extends Component {
         dateAndTime
       })
       if (this._isMounted) {
-        this.setState({ createPost: false, loading: true })            //close the create post modal
+        this.setState({ createPost: false })            //close the create post modal
         this.getAnnouncements()                       //get announcement after posting a new one
         this.setDateAndTime()
       }
     } catch (error) {
-      console.log( error.response)
+      console.log(error.response)
     }
   }
 
   render() {
     var announcements = this.state.announcements.map((announcement, i) => (        //Seperate the array into divs for render 
-      <div key={i} className="post">
-        <div className="title">{announcement.postTitle}</div>
-        <div id="announcement_content">{announcement.postContent}</div>
-        <br></br>
-      </div>
+      <Card key={i}>
+        <Accordion.Toggle as={Card.Header} eventKey={i}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div>{announcement.postTitle} </div>
+            <div>{announcement.dateAndTime}</div>
+          </div>
+        </Accordion.Toggle>
+        <Accordion.Collapse eventKey={i}>
+          <Card.Body>{announcement.postContent}</Card.Body>
+        </Accordion.Collapse>
+      </Card>
     ))
 
-    return this.state.loading ?
-        <Spinner />
-      : (
+    return this.state.loading ? (
+      <Spinner />
+    ) : (
         <div>
-          <Col sm={{ span: 2, offset: 10 }}>
-            <Button
-              hidden={this.props.Employee}          //if is employee, can't create new announcement
-              type="submit"
-              onClick={this.handlePostForm}
-            >
-              Create
-          </Button>
-          </Col>
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: "1.5rem",
+            }}
+            className="p-3 mb-2 bg-secondary text-white"
+          >
+            Announcements
+          </div>
           <CreatePost                                  //This component here is the window popup that creates new announcements
             show={this.state.createPost}               //Passes down the function and the require state for creating post
             close={this.handlePostForm}
@@ -116,13 +122,26 @@ class AnnouncementBoard extends Component {
             post={this.state.post}
             title={this.state.title}
           />
-
           {this.state.announcements.length                  //checks if there are announcements
-            ? announcements
+            ? <Accordion defaultActiveKey="0">
+              {announcements}
+            </Accordion>
             : this.state.noData                             //Check if the page is current loading or if there is no announcement 
               ? <div>No Announcements</div>
-              : <div>Loading . . .</div>
+              : <div> Loading . . . </div>
           }
+          <div style={{ display: "flex", justifyContent: "flex-end" }} >
+            <Button
+              type="submit"
+              onClick={this.handlePostForm}
+              variant="secondary"
+              size="lg"
+              style={{ margin: "auto !important", display: this.props.jobPosition === "Manager"? "block" : "none" }}
+              active
+            >
+              Create Announcement
+          </Button>
+          </div>
         </div>
       )
   }
@@ -131,7 +150,7 @@ class AnnouncementBoard extends Component {
 const getUserInfo = (props) => (
   <Context.Consumer>
     {(value) => {
-      const { user, idToken } = value;
+      const { user, idToken } = value.state;
       return <AnnouncementBoard user={user} idToken={idToken} {...props} />
     }
     }

@@ -7,23 +7,23 @@ const router = new express.Router()
 const isAuthenticated = require('../Middleware/Auth')
 const firebaseAdmin = require('../Config/firebaseAdmin')
 
-//@route    Post /login
-//@desc     login user in
+//@route    Get /getJobPosition
+//@desc     return user job position
 //@access   Private
-router.post('/login', isAuthenticated, async (req, res) => {
+router.get('/getJobPosition', isAuthenticated, async (req, res) => {
   let uid = res.locals.userID
   try{
     const usersRef = await ref.child('Users/' + uid)
     const snapshot = await usersRef.once("value")
-    const userPosition = await snapshot.val().jobPosition       
-    res.send(userPosition)                                
+    const userPosition = await snapshot.val().jobPosition
+    res.json({userPosition})                                
   } catch (error) {
     res.status(401)
     console.log(error)
   }
 })
 
-//@route    /createusers
+//@route    Post /createusers
 //@desc     create user in database
 //@access   Private
 router.post('/createusers', async (req, res) => {
