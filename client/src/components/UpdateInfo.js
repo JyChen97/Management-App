@@ -17,7 +17,8 @@ class UpdateInfo extends Component {
       notification: false,
       Worker: "",
       Manager: "",
-      loading: false
+      loading: false,
+      errorMessage: ""
     }
   }
 
@@ -58,8 +59,8 @@ class UpdateInfo extends Component {
 
   handleSubmit = async event => {
     event.preventDefault();
-    this.setState({loading: true})
-    const { idToken } = this.props
+    this.setState({ loading: true })
+    const { idToken, user } = this.props
     let { name, companyName, password } = this.state
     let jobPosition = this.state.Manager.length > 0 ? this.state.Manager : this.state.Worker
     try {
@@ -68,15 +69,15 @@ class UpdateInfo extends Component {
         "companyName": companyName,
         "name": name,
         "jobPosition": jobPosition,
-        "password": password
       })
+      await user.updatePassword(password)
       this.props.setJobPosition(jobPosition)
       this.setState({
         updateSuccess: res.data.success,
         notification: true,
       })
     } catch (error) {
-      console.error(error)
+      this.setState({ loading: false, errorMessage: error.message })
     }
   }
 
@@ -150,30 +151,29 @@ class UpdateInfo extends Component {
               />
             </div>
           </Form.Group>
-
-
-          {this.state.loading? (
+          <p style={{color: "red"}}>{this.state.errorMessage}</p>
+          {this.state.loading ? (
             <Button variant="primary" type="submit" block disabled>
-            <Spinner
-              as="span"
-              animation="grow"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-            />
+              <Spinner
+                as="span"
+                animation="grow"
+                size="sm"
+                role="status"
+                aria-hidden="true"
+              />
               Loading...
             </Button>
           ) : (
-            <Button
-            variant="primary"
-            type="submit"
-            block
-            disabled={!this.validateForm()}
-            onClick={this.handleSubmit}
-            >
-              Submit Update
+              <Button
+                variant="primary"
+                type="submit"
+                block
+                disabled={!this.validateForm()}
+                onClick={this.handleSubmit}
+              >
+                Submit Update
             </Button>
-          )}
+            )}
         </Form>
 
         <Modal show={this.state.notification} onHide={this.handleClose}>

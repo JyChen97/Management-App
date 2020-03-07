@@ -3,6 +3,7 @@ import { Button, FormGroup, FormControl, FormLabel, Spinner } from "react-bootst
 import "../styles/Login.css";
 import fire from "../webConfig/Fire";
 import Context from '../context/Context';
+import PasswordResetEmail from './PasswordResetEmail';
 
 class Login extends Component {
   constructor(props) {
@@ -12,8 +13,14 @@ class Login extends Component {
       password: "",
       err: "",
       jobPosition: null,
-      loading: false
+      loading: false,
+      show: false,
+      passwordResetMessage: ""
     }
+  }
+
+  handleForgetPassword = () => {
+    this.setState({ show: !this.state.show })
   }
 
   validateForm() {
@@ -29,23 +36,32 @@ class Login extends Component {
     });
   }
 
+  handleSubmitPasswordReset = async () => {
+    try{
+      await fire.auth().sendPasswordResetEmail(this.state.email)
+      this.props.handleForgetPassword()
+    } catch (error) {
+      this.setState({passwordResetMessage: "Please enter a valid email"})
+    }
+  }
+
   handleSubmit = async (event) => {
     event.preventDefault();
+    this.setState({ loading: true });
     try {
       await fire.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
-      this.setState({ loading: true });
       setTimeout(() => {                            //takes awhile for the state to update when firebase returns the user object
         const { user } = this.props;
         if (user) {
           if (!user.emailVerified) {
             user.sendEmailVerification();                 //if user didn't verified their email, send then verification email
             fire.auth().signOut();
-            this.setState({ err: "Requires Verification" });
+            this.setState({ err: "Requires Verification", loading: false });
           } else {
             //setting state loading to false should be in the finally block of the try-catch-finally but because the finally block executed 
-            //faster than the history.push("/UserPage") the state would be set to false, causing user to not see the loading button before the page
-            //gets pushed to the the user page
-            this.setState({ loading: false });        
+            //faster than the history.push("/UserPage") the state would be set to false, user won't be able to see the loading button before the page
+            //gets pushed to the the user page  
+            this.setState({ loading: false });
             this.props.history.push("/UserPage")
           }
         }
@@ -68,7 +84,7 @@ class Login extends Component {
   render() {
     return (
       <div className="Login">
-        <form onSubmit={this.handleSubmit}>
+        <form>
           <FormGroup controlId="email">
             <FormLabel>Email</FormLabel>
             <FormControl
@@ -108,7 +124,19 @@ class Login extends Component {
                 Login
               </Button>
             )}
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <Button variant="link" onClick={this.handleForgetPassword} id='show'>Reset Password</Button>
+          </div>
         </form>
+
+        <PasswordResetEmail
+          show={this.state.show}
+          handleForgetPassword={this.handleForgetPassword}
+          handleSubmitPasswordReset={this.handleSubmitPasswordReset}
+          handleChange={this.handleChange}
+          passwordResetMessage={this.state.passwordResetMessage}
+        />
+
       </div>
     );
   }

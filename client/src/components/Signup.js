@@ -54,7 +54,7 @@ class Signup extends Component {
         }
       }
     } catch (error) {
-      console.log(error)
+      console.log('problem with verification')
     }
   }
 
@@ -96,7 +96,7 @@ class Signup extends Component {
       } else if (errorCode === 'auth/invalid-email') {
         this.setState({ registrationError: "Invalid Email" })
       } else if (errorCode === 'auth/weak-password') {
-        this.setState({ registrationError: "Weak Password" })
+        this.setState({ registrationError: "Password Need To Be Minimum of 6 Characters" })
       }
     };
   }
@@ -104,7 +104,7 @@ class Signup extends Component {
   render() {
     return (
       <div className="Signup">
-        <form onSubmit={this.handleSubmit}>
+        <form>
           <FormGroup controlId="name">
             <FormLabel>Name</FormLabel>
             <FormControl
