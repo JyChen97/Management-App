@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Button, FormGroup, FormControl, FormLabel, Spinner } from "react-bootstrap";
-import "../styles/Login.css";
 import fire from "../webConfig/Fire";
 import Context from '../context/Context';
 import PasswordResetEmail from './PasswordResetEmail';
@@ -102,7 +101,7 @@ class Login extends Component {
               type="password"
             />
           </FormGroup>
-          <p className="Err">{this.state.err}</p>
+          <p style={{color: "red"}}>{this.state.err}</p>
           {this.state.loading ? (
             <Button type="submit" block disabled>
               <Spinner

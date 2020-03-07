@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { FormGroup, FormControl, FormLabel, Button, Form, Row, Col, Spinner } from "react-bootstrap";
-import "../styles/Signup.css";
 import fire from "../webConfig/Fire";
 import axios from "axios";
 import VerificationModal from './VerificationModal';
@@ -89,7 +88,7 @@ class Signup extends Component {
         }
       }, 3000)
     } catch (error) {                                     //Display error when user entered wrong creditials
-      this.setState({loading: false})
+      this.setState({ loading: false })
       let errorCode = error.code;
       if (errorCode === 'auth/email-already-in-use') {
         this.setState({ registrationError: "Email Already Exist" })
@@ -151,11 +150,9 @@ class Signup extends Component {
               placeholder="Company"
             />
           </FormGroup>
-          <FormGroup as={Row} controlId="jobPosition">
-            <Form.Label column sm={5}>
-              Job Position
-            </Form.Label>
-            <Col sm={7}>
+          <FormGroup controlId="jobPosition" style={{ display: "flex", justifyContent: "space-between" }}>
+            <Form.Label> Job Position </Form.Label>
+            <div>
               <Form.Check
                 onChange={this.handleChange}
                 value="Manager"
@@ -174,11 +171,10 @@ class Signup extends Component {
                 type="radio"
                 id="Worker"
               />
-            </Col>
+            </div>
           </FormGroup>
-          {/*After clicking submit button, errors will be shown if there's any */}
-          <p className="Err">{this.state.registrationError}</p>
-
+          <p style={{ color: "red" }}>{this.state.registrationError}</p>
+          
           {/*Prompt user to verify their email, or log them out when they clicked close button */}
           <VerificationModal show={this.state.show} verification={this.verification} />
 
@@ -194,13 +190,13 @@ class Signup extends Component {
               Loading...
             </Button>
           ) : (
-            <Button
-              block
-              disabled={!this.validateForm()}
-              type="submit"
-              onClick={this.handleSubmit}
-            >
-              Sign Up
+              <Button
+                block
+                disabled={!this.validateForm()}
+                type="submit"
+                onClick={this.handleSubmit}
+              >
+                Sign Up
             </Button>
             )
           }

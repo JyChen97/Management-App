@@ -1,8 +1,11 @@
 import React from "react";
-import "../styles/NotFound.css";
 
 export default () =>
-  <div className="NotFound">
+  <div style={{
+    padding: "100px",
+    textAlign: "center",
+    margin: "auto",
+  }}>
     <h3>Sorry, page not found!</h3>
   </div>;
 

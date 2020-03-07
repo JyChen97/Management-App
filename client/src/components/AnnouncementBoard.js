@@ -3,7 +3,6 @@ import { Button, Accordion, Card, } from "react-bootstrap";
 import CreatePost from "./CreatePost";
 import axios from "axios";
 import Context from '../context/Context';
-import "../styles/AnnouncementBoard.css";
 import Spinner from './Spinner';
 
 class AnnouncementBoard extends Component {

@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { Tab, ListGroup, Col, Row } from "react-bootstrap";
-import "../styles/UserPage.css";
 import ClockIn from "./ClockIn";
 import AnnouncementBoard from "./AnnouncementBoard";
 import ViewSchedule from "./ViewSchedule";

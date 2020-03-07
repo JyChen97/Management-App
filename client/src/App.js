@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import Routes from "./routes/Routes";
-import "./styles/App.css";
+import "./App.css";
 import fire from "./webConfig/Fire";
 import CustomNavbar from './components/CustomNavbar';
 import SetAuthToken from './Auth/SetAuthToken';

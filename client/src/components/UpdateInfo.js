@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Form, Button, FormControl, Modal, Spinner } from "react-bootstrap";
 import axios from "axios";
-import "../styles/UpdateInfo.css";
 import Context from '../context/Context';
 
 class UpdateInfo extends Component {
@@ -83,7 +82,7 @@ class UpdateInfo extends Component {
 
   render() {
     return (
-      <div className="UpdateInfo">
+      <div style={{padding: "0 5% 5%"}}>
         <Form>
           <Form.Group controlId="name">
             <Form.Label>Name</Form.Label>
