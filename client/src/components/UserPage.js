@@ -27,7 +27,7 @@ class UserPage extends Component {
     setTimeout(() => {
       this.props.getJobPosition();
       this.setState({ render: true, jobPosition: this.props.jobPosition })
-    }, 1000);
+    }, 2000);
   }
 
   shouldUpdateSchedule = () => {

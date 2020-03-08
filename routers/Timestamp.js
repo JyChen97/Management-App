@@ -17,7 +17,6 @@ router.post('/getClockStatus', isAuthenticated, async (req, res) => {
     const status = await snapshot.hasChild(date)
     res.json({ "clockIn": (status ? true : false) })
   } catch (error) {
-    console.log(error)
     res.status(500)
   }
 })
@@ -31,13 +30,12 @@ router.post('/clockIn', isAuthenticated, async (req, res) => {
   try {
     const usersRef = await ref.child('Users/' + uid + '/Schedule/' + date)
     await usersRef.set({
-      Date: date,                                     
+      Date: date,
       clockIn: req.body.time,
       clockOut: 0
     })
     res.status(200).json({ "res": "Successfully Clock In" })
   } catch (error) {
-    console.log(error)
     res.status(500)
   }
 })
@@ -55,7 +53,6 @@ router.post('/clockOut', isAuthenticated, async (req, res) => {
     })
     res.status(200).json({ "res": "Successfully Clock Out" })
   } catch (error) {
-    console.log(error)
     res.status(500)
   }
 })

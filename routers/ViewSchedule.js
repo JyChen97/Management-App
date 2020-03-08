@@ -28,7 +28,6 @@ router.post('/getSchedule', isAuthenticated, async (req, res) => {
       })
     }
   } catch (error) {
-    console.log(error)
     res.status(500)
   }
 })

@@ -18,8 +18,7 @@ router.get('/getJobPosition', isAuthenticated, async (req, res) => {
     const userPosition = await snapshot.val().jobPosition
     res.json({userPosition})                                
   } catch (error) {
-    res.status(401)
-    console.log(error)
+    res.status(500)
   }
 })
 
@@ -46,8 +45,7 @@ router.post('/createusers', async (req, res) => {
     })
     res.status(200).json({ "res": "Update Success" })
   }catch (error) {
-    console.log(error)
-    res.status(400)
+    res.status(500)
   }
 })
 

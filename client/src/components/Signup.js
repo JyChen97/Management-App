@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { FormGroup, FormControl, FormLabel, Button, Form, Row, Col, Spinner } from "react-bootstrap";
+import { FormGroup, FormControl, FormLabel, Button, Form, Spinner } from "react-bootstrap";
 import fire from "../webConfig/Fire";
 import axios from "axios";
 import VerificationModal from './VerificationModal';

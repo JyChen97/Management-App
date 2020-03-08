@@ -12,11 +12,9 @@ router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
   let uid = res.locals.userID
   let Announcements
   try{
-    const usersRef = await ref.child('Users/' + uid)
-    const snapshot = await usersRef.once('value')                     
+    const snapshot = await ref.child('Users/' + uid).once('value')                
     const companyName = await snapshot.val().companyName
-    const announcementRef = await ref.child('Announcements/' + companyName)
-    const announcement = await  announcementRef.once('value')                  
+    const announcement = await ref.child('Announcements/' + companyName).once('value')             
     if(announcement.val() === null){
       res.json({                                      
       "noData"       : true,
@@ -27,7 +25,6 @@ router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
       res.json({ "Announcements": Announcements })
     }
   } catch(error) {
-    console.log(error)
     res.status(500)
   }
 })
@@ -43,8 +40,7 @@ router.post('/createAnnouncement', isAuthenticated, async (req, res) =>{
     if(!dateAndTime || !postTitle || !postContent){
       throw new Error('Incorrect Input Fields')
     }
-    const usersRef = await ref.child('Users/' + uid)
-    const snapshot = await usersRef.once('value')
+    const snapshot = await ref.child('Users/' + uid).once('value')
     const companyName = await snapshot.val().companyName
     const announcementRef = await ref.child('Announcements/' + companyName + '/' + dateAndTime)    
     await announcementRef.set({ postTitle, postContent, dateAndTime })
