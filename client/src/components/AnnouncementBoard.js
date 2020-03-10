@@ -42,7 +42,8 @@ class AnnouncementBoard extends Component {
         }
       }
     } catch (error) {
-      console.error(error)
+      if (error.response.status === 500){
+      }
     }
   }
 

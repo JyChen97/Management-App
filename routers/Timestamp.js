@@ -17,7 +17,7 @@ router.post('/getClockStatus', isAuthenticated, async (req, res) => {
     const status = await snapshot.hasChild(date)
     res.json({ "clockIn": (status ? true : false) })
   } catch (error) {
-    res.status(500)
+    res.sendStatus(500)
   }
 })
 
@@ -36,7 +36,7 @@ router.post('/clockIn', isAuthenticated, async (req, res) => {
     })
     res.status(200).json({ "res": "Successfully Clock In" })
   } catch (error) {
-    res.status(500)
+    res.sendStatus(500)
   }
 })
 
@@ -53,7 +53,7 @@ router.post('/clockOut', isAuthenticated, async (req, res) => {
     })
     res.status(200).json({ "res": "Successfully Clock Out" })
   } catch (error) {
-    res.status(500)
+    res.sendStatus(500)
   }
 })
 

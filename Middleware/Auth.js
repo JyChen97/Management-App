@@ -10,7 +10,7 @@ module.exports = async (req, res, next) => {
     res.locals.userID = user.uid
     next();
   } catch (error) {
-    console.error(error)
+    res.sendStatus(500)
   }
 }
 

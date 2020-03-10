@@ -28,7 +28,7 @@ router.post('/getSchedule', isAuthenticated, async (req, res) => {
       })
     }
   } catch (error) {
-    res.status(500)
+    res.sendStatus(500)
   }
 })
 

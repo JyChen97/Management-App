@@ -25,7 +25,7 @@ router.post('/getAnnouncement', isAuthenticated, async (req,res) =>{
       res.json({ "Announcements": Announcements })
     }
   } catch(error) {
-    res.status(500)
+    res.sendStatus(500)
   }
 })
 

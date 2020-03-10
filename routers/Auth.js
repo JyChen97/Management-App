@@ -18,14 +18,14 @@ router.get('/getJobPosition', isAuthenticated, async (req, res) => {
     const userPosition = await snapshot.val().jobPosition
     res.json({userPosition})                                
   } catch (error) {
-    res.status(500)
+    res.sendStatus(500)
   }
 })
 
 //@route    Post /createusers
 //@desc     create user in database
 //@access   Private
-router.post('/createusers', async (req, res) => {
+router.post('/createUser', async (req, res) => {
   let { ID, name, companyName, jobPosition } = req.body
   try {
     let user
@@ -45,7 +45,7 @@ router.post('/createusers', async (req, res) => {
     })
     res.status(200).json({ "res": "Update Success" })
   }catch (error) {
-    res.status(500)
+    res.sendStatus(500)
   }
 })
 

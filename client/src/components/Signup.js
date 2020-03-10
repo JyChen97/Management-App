@@ -73,7 +73,7 @@ class Signup extends Component {
       setTimeout(async () => {                                  //requies time to update the state after receiving the user object from firebase
         const { user, idToken } = this.props;
         if (user) {
-          await axios.post("/createusers", {                    //This will update the database
+          await axios.post("/createUser", {                    //This will update the database
             "ID": idToken,
             "companyName": companyName,
             "name": name,
