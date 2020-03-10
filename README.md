@@ -3,7 +3,8 @@
 Jiaying Chen
 
 ### Requirement: <br>
-Node package management 6.7 or later <br>
+Node@12.10.0 
+NPM@6.7 or later <br>
 Firebase private key file in JSON format downloaded from your firebase project. <br>
  
 In your firebase project: <br>

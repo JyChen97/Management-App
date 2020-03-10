@@ -22,7 +22,7 @@
   "devDependencies": {
     "concurrently": "^5.0.2",
     "env-cmd": "^8.0.2",
-    "jest": "^23.6.0",
+    "jest": "^24.9.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "node-mocks-http": "^1.7.5",
